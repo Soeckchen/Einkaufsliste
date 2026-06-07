@@ -1,3 +1,0 @@
-
-# Einkaufsliste PWA
-
