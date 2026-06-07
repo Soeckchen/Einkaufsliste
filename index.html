@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Einkaufsliste</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+<h1>Einkaufsliste</h1>
+
+<div id="planView">
+<div class="row">
+<input id="itemInput" placeholder="Artikel hinzufügen">
+<input id="qtyInput" type="number" min="1" value="1">
+<button onclick="addItem()">+</button>
+</div>
+
+<div id="defaults"></div>
+
+<ul id="planList"></ul>
+
+<button class="primary" onclick="startShopping()">Einkauf starten</button>
+</div>
+
+<div id="shopView" class="hidden">
+<div id="progress"></div>
+<ul id="shopList"></ul>
+<button class="primary" onclick="finishShopping()">Einkauf abschließen</button>
+</div>
+</div>
+<script src="js/app.js"></script>
+</body>
+</html>
