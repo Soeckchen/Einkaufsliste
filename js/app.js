@@ -11,37 +11,39 @@
     // ==========================================
     
     const STORAGE_KEY = 'einkaufsliste_data';
+    const HISTORY_KEY = 'einkaufsliste_history';
+    const SETTINGS_KEY = 'einkaufsliste_settings';
     
     const STANDARD_ARTIKEL = [
-        { name: 'Milch', emoji: '🥛', kategorie: 'Kühlung' },
-        { name: 'Butter', emoji: '🧈', kategorie: 'Kühlung' },
-        { name: 'Eier', emoji: '🥚', kategorie: 'Kühlung' },
-        { name: 'Brot', emoji: '🍞', kategorie: 'Backwaren' },
-        { name: 'Käse', emoji: '🧀', kategorie: 'Kühlung' },
-        { name: 'Joghurt', emoji: '🥛', kategorie: 'Kühlung' },
-        { name: 'Äpfel', emoji: '🍎', kategorie: 'Obst & Gemüse' },
-        { name: 'Bananen', emoji: '🍌', kategorie: 'Obst & Gemüse' },
-        { name: 'Nudeln', emoji: '🍝', kategorie: 'Vorräte' },
-        { name: 'Reis', emoji: '🍚', kategorie: 'Vorräte' },
-        { name: 'Kaffee', emoji: '☕', kategorie: 'Getränke' },
-        { name: 'Wasser', emoji: '💧', kategorie: 'Getränke' },
-        { name: 'Tomaten', emoji: '🍅', kategorie: 'Obst & Gemüse' },
-        { name: 'Zwiebeln', emoji: '🧅', kategorie: 'Obst & Gemüse' },
-        { name: 'Kartoffeln', emoji: '🥔', kategorie: 'Obst & Gemüse' },
-        { name: 'Hähnchen', emoji: '🍗', kategorie: 'Fleisch' },
-        { name: 'Wurst', emoji: '🌭', kategorie: 'Fleisch' },
-        { name: 'Olivenöl', emoji: '🫒', kategorie: 'Vorräte' },
-        { name: 'Zucker', emoji: '🧂', kategorie: 'Vorräte' },
-        { name: 'Mehl', emoji: '🌾', kategorie: 'Vorräte' }
+        { name: 'Milch', emoji: 'ðŸ¥›', kategorie: 'KÃ¼hlung' },
+        { name: 'Butter', emoji: 'ðŸ§ˆ', kategorie: 'KÃ¼hlung' },
+        { name: 'Eier', emoji: 'ðŸ¥š', kategorie: 'KÃ¼hlung' },
+        { name: 'Brot', emoji: 'ðŸž', kategorie: 'Backwaren' },
+        { name: 'KÃ¤se', emoji: 'ðŸ§€', kategorie: 'KÃ¼hlung' },
+        { name: 'Joghurt', emoji: 'ðŸ¥›', kategorie: 'KÃ¼hlung' },
+        { name: 'Ã„pfel', emoji: 'ðŸŽ', kategorie: 'Obst & GemÃ¼se' },
+        { name: 'Bananen', emoji: 'ðŸŒ', kategorie: 'Obst & GemÃ¼se' },
+        { name: 'Nudeln', emoji: 'ðŸ', kategorie: 'VorrÃ¤te' },
+        { name: 'Reis', emoji: 'ðŸš', kategorie: 'VorrÃ¤te' },
+        { name: 'Kaffee', emoji: 'â˜•', kategorie: 'GetrÃ¤nke' },
+        { name: 'Wasser', emoji: 'ðŸ’§', kategorie: 'GetrÃ¤nke' },
+        { name: 'Tomaten', emoji: 'ðŸ…', kategorie: 'Obst & GemÃ¼se' },
+        { name: 'Zwiebeln', emoji: 'ðŸ§…', kategorie: 'Obst & GemÃ¼se' },
+        { name: 'Kartoffeln', emoji: 'ðŸ¥”', kategorie: 'Obst & GemÃ¼se' },
+        { name: 'HÃ¤hnchen', emoji: 'ðŸ—', kategorie: 'Fleisch' },
+        { name: 'Wurst', emoji: 'ðŸŒ­', kategorie: 'Fleisch' },
+        { name: 'OlivenÃ¶l', emoji: 'ðŸ«’', kategorie: 'VorrÃ¤te' },
+        { name: 'Zucker', emoji: 'ðŸ§‚', kategorie: 'VorrÃ¤te' },
+        { name: 'Mehl', emoji: 'ðŸŒ¾', kategorie: 'VorrÃ¤te' }
     ];
 
     const KATEGORIE_REIHENFOLGE = [
-        'Obst & Gemüse',
-        'Kühlung',
+        'Obst & GemÃ¼se',
+        'KÃ¼hlung',
         'Fleisch',
         'Backwaren',
-        'Vorräte',
-        'Getränke',
+        'VorrÃ¤te',
+        'GetrÃ¤nke',
         'Sonstiges'
     ];
 
@@ -51,7 +53,10 @@
     
     let state = {
         liste: [],
-        currentScreen: 'planen'
+        currentScreen: 'planen',
+        // Kaufhistorie: { name -> { count, emoji, kategorie } }
+        history: {},
+        darkMode: false
     };
 
     // ==========================================
@@ -59,11 +64,8 @@
     // ==========================================
     
     const elements = {
-        // Screens
         screenPlanen: document.getElementById('screen-planen'),
         screenEinkauf: document.getElementById('screen-einkauf'),
-        
-        // Planen
         inputArtikel: document.getElementById('input-artikel'),
         btnAdd: document.getElementById('btn-add'),
         chipsContainer: document.getElementById('chips-container'),
@@ -74,24 +76,18 @@
         btnStartEinkauf: document.getElementById('btn-start-einkauf'),
         btnVorschlaege: document.getElementById('btn-vorschlaege'),
         sectionHaeufig: document.getElementById('section-haeufig'),
-        
-        // Einkauf
         btnBack: document.getElementById('btn-back'),
         progressCount: document.getElementById('progress-count'),
         progressFill: document.getElementById('progress-fill'),
         einkaufKategorien: document.getElementById('einkauf-kategorien'),
         btnAbschliessen: document.getElementById('btn-abschliessen'),
-        
-        // Dialog
         dialogOverlay: document.getElementById('dialog-overlay'),
         btnConfirmAbschluss: document.getElementById('btn-confirm-abschluss'),
         btnCancelAbschluss: document.getElementById('btn-cancel-abschluss'),
-        
-        // Navigation
         navItems: document.querySelectorAll('.nav-item'),
-        
-        // Voice
-        btnVoice: document.getElementById('btn-voice')
+        btnVoice: document.getElementById('btn-voice'),
+        btnSettings: document.getElementById('btn-settings'),
+        autocompleteList: document.getElementById('autocomplete-list')
     };
 
     // ==========================================
@@ -109,16 +105,178 @@
             console.error('Fehler beim Laden:', e);
             state.liste = [];
         }
+
+        try {
+            const hist = localStorage.getItem(HISTORY_KEY);
+            if (hist) {
+                state.history = JSON.parse(hist);
+            }
+        } catch (e) {
+            console.error('Fehler beim Laden der Historie:', e);
+            state.history = {};
+        }
+
+        try {
+            const settings = localStorage.getItem(SETTINGS_KEY);
+            if (settings) {
+                const parsed = JSON.parse(settings);
+                state.darkMode = parsed.darkMode || false;
+            }
+        } catch (e) {
+            state.darkMode = false;
+        }
     }
 
     function saveData() {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                liste: state.liste
-            }));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ liste: state.liste }));
         } catch (e) {
             console.error('Fehler beim Speichern:', e);
         }
+    }
+
+    function saveHistory() {
+        try {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
+        } catch (e) {
+            console.error('Fehler beim Speichern der Historie:', e);
+        }
+    }
+
+    function saveSettings() {
+        try {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify({ darkMode: state.darkMode }));
+        } catch (e) {
+            console.error('Fehler beim Speichern der Einstellungen:', e);
+        }
+    }
+
+    // ==========================================
+    // Kaufhistorie
+    // ==========================================
+
+    /**
+     * ErhÃ¶ht den ZÃ¤hler fÃ¼r alle abgehakten Artikel beim Abschluss des Einkaufs.
+     */
+    function recordPurchases() {
+        state.liste.forEach(artikel => {
+            const key = artikel.name.toLowerCase();
+            if (!state.history[key]) {
+                state.history[key] = {
+                    name: artikel.name,
+                    emoji: artikel.emoji,
+                    kategorie: artikel.kategorie,
+                    count: 0
+                };
+            }
+            state.history[key].count += 1;
+        });
+        saveHistory();
+    }
+
+    /**
+     * Gibt die Artikel der Kaufhistorie sortiert nach HÃ¤ufigkeit zurÃ¼ck.
+     */
+    function getHistorySorted() {
+        return Object.values(state.history)
+            .sort((a, b) => b.count - a.count);
+    }
+
+    // ==========================================
+    // Dark Mode
+    // ==========================================
+
+    function applyDarkMode() {
+        document.documentElement.classList.toggle('dark-mode', state.darkMode);
+        // Icon tauschen: Sonne â†” Mond
+        const icon = elements.btnSettings ? elements.btnSettings.querySelector('svg') : null;
+        if (icon) {
+            if (state.darkMode) {
+                // Mond-Icon
+                icon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+            } else {
+                // Sonnen-Icon
+                icon.innerHTML = `
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+            }
+        }
+    }
+
+    function toggleDarkMode() {
+        state.darkMode = !state.darkMode;
+        applyDarkMode();
+        saveSettings();
+    }
+
+    // ==========================================
+    // Autocomplete
+    // ==========================================
+
+    /**
+     * Erstellt Autocomplete-VorschlÃ¤ge basierend auf Eingabe.
+     * Priorisiert: 1. Kaufhistorie (nach count), 2. Standard-Artikel
+     */
+    function getAutocompleteItems(query) {
+        if (!query || query.length < 1) return [];
+        const q = query.toLowerCase().trim();
+        const inListe = new Set(state.liste.map(a => a.name.toLowerCase()));
+
+        const results = [];
+        const seen = new Set();
+
+        // 1. Aus Kaufhistorie (sortiert nach count)
+        getHistorySorted().forEach(item => {
+            const key = item.name.toLowerCase();
+            if (key.includes(q) && !inListe.has(key) && !seen.has(key)) {
+                results.push({ ...item, fromHistory: true });
+                seen.add(key);
+            }
+        });
+
+        // 2. Aus Standard-Artikeln
+        STANDARD_ARTIKEL.forEach(artikel => {
+            const key = artikel.name.toLowerCase();
+            if (key.includes(q) && !inListe.has(key) && !seen.has(key)) {
+                results.push({ ...artikel, count: 0, fromHistory: false });
+                seen.add(key);
+            }
+        });
+
+        return results.slice(0, 6);
+    }
+
+    function showAutocomplete(query) {
+        const list = elements.autocompleteList;
+        if (!list) return;
+
+        const items = getAutocompleteItems(query);
+
+        if (items.length === 0) {
+            list.style.display = 'none';
+            return;
+        }
+
+        list.innerHTML = items.map(item => `
+            <li class="autocomplete-item" data-name="${item.name}">
+                <span class="autocomplete-emoji">${item.emoji}</span>
+                <span class="autocomplete-name">${item.name}</span>
+                ${item.count > 0 ? `<span class="autocomplete-count">${item.count}Ã—</span>` : ''}
+            </li>
+        `).join('');
+        list.style.display = 'block';
+    }
+
+    function hideAutocomplete() {
+        const list = elements.autocompleteList;
+        if (list) list.style.display = 'none';
     }
 
     // ==========================================
@@ -127,6 +285,11 @@
     
     function findArtikelInfo(name) {
         const normalized = name.toLowerCase().trim();
+        // Zuerst in History suchen (enthÃ¤lt echte Nutzerdaten)
+        if (state.history[normalized]) {
+            const h = state.history[normalized];
+            return { name: h.name, emoji: h.emoji, kategorie: h.kategorie };
+        }
         return STANDARD_ARTIKEL.find(a => a.name.toLowerCase() === normalized);
     }
 
@@ -134,10 +297,8 @@
         const trimmed = name.trim();
         if (!trimmed) return false;
         
-        // Prüfen ob bereits vorhanden
         const exists = state.liste.some(a => a.name.toLowerCase() === trimmed.toLowerCase());
         if (exists) {
-            // Visuelles Feedback
             const existingItem = document.querySelector(`[data-name="${trimmed.toLowerCase()}"]`);
             if (existingItem) {
                 existingItem.classList.add('shake');
@@ -150,13 +311,14 @@
         state.liste.push({
             id: Date.now(),
             name: info ? info.name : trimmed,
-            emoji: info ? info.emoji : '🛒',
+            emoji: info ? info.emoji : 'ðŸ›’',
             kategorie: info ? info.kategorie : 'Sonstiges',
             checked: false
         });
         
         saveData();
         renderPlanenListe();
+        hideAutocomplete();
         return true;
     }
 
@@ -180,14 +342,30 @@
     // Rendering
     // ==========================================
     
+    /**
+     * Chips: Zeigt hÃ¤ufig gekaufte Artikel (aus History) + Standard-Artikel als ErgÃ¤nzung.
+     */
     function renderChips() {
-        // Zeige nur Chips die noch nicht in der Liste sind
         const inListe = new Set(state.liste.map(a => a.name.toLowerCase()));
-        const verfuegbar = STANDARD_ARTIKEL.filter(a => !inListe.has(a.name.toLowerCase()));
-        
-        elements.chipsContainer.innerHTML = verfuegbar.slice(0, 8).map(artikel => `
+
+        // Aus History (hÃ¤ufigste zuerst)
+        const fromHistory = getHistorySorted()
+            .filter(a => !inListe.has(a.name.toLowerCase()))
+            .slice(0, 8);
+
+        // Wenn History leer: Standard-Artikel als Fallback
+        let chips = fromHistory;
+        if (chips.length < 8) {
+            const seen = new Set(chips.map(a => a.name.toLowerCase()));
+            const fallback = STANDARD_ARTIKEL
+                .filter(a => !inListe.has(a.name.toLowerCase()) && !seen.has(a.name.toLowerCase()))
+                .slice(0, 8 - chips.length);
+            chips = [...chips, ...fallback];
+        }
+
+        elements.chipsContainer.innerHTML = chips.map(artikel => `
             <button class="chip" data-name="${artikel.name}">
-                ${artikel.name}
+                ${artikel.emoji ? artikel.emoji + ' ' : ''}${artikel.name}${artikel.count > 0 ? ` <span class="chip-count">${artikel.count}Ã—</span>` : ''}
             </button>
         `).join('');
     }
@@ -195,20 +373,18 @@
     function renderPlanenListe() {
         const hasItems = state.liste.length > 0;
         
-        // UI States
         elements.emptyState.style.display = hasItems ? 'none' : 'flex';
         elements.sectionListe.style.display = hasItems ? 'block' : 'none';
         elements.ctaPlanen.style.display = hasItems ? 'block' : 'none';
         elements.screenPlanen.classList.toggle('has-items', hasItems);
         
-        // Liste rendern
         elements.artikelListe.innerHTML = state.liste.map(artikel => `
             <li class="artikel-item" data-name="${artikel.name.toLowerCase()}">
                 <div class="artikel-item-left">
                     <div class="artikel-icon">${artikel.emoji}</div>
                     <span class="artikel-name">${artikel.name}</span>
                 </div>
-                <button class="btn-delete" data-id="${artikel.id}" aria-label="Löschen">
+                <button class="btn-delete" data-id="${artikel.id}" aria-label="LÃ¶schen">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -217,12 +393,10 @@
             </li>
         `).join('');
         
-        // Chips aktualisieren
         renderChips();
     }
 
     function renderEinkaufListe() {
-        // Nach Kategorie gruppieren
         const grouped = {};
         KATEGORIE_REIHENFOLGE.forEach(k => grouped[k] = []);
         
@@ -232,7 +406,6 @@
             grouped[kat].push(artikel);
         });
         
-        // Leere Kategorien entfernen
         const nonEmpty = KATEGORIE_REIHENFOLGE.filter(k => grouped[k]?.length > 0);
         
         elements.einkaufKategorien.innerHTML = nonEmpty.map(kategorie => `
@@ -272,16 +445,13 @@
     function showScreen(screenName) {
         state.currentScreen = screenName;
         
-        // Screens
         elements.screenPlanen.classList.toggle('active', screenName === 'planen');
         elements.screenEinkauf.classList.toggle('active', screenName === 'einkauf');
         
-        // Navigation
         elements.navItems.forEach(item => {
             item.classList.toggle('active', item.dataset.screen === screenName);
         });
         
-        // Einkauf Screen initialisieren
         if (screenName === 'einkauf') {
             renderEinkaufListe();
             updateProgress();
@@ -301,6 +471,8 @@
     }
 
     function completeEinkauf() {
+        // Kaufhistorie aktualisieren bevor Liste geleert wird
+        recordPurchases();
         state.liste = [];
         saveData();
         hideDialog();
@@ -313,7 +485,7 @@
     // ==========================================
     
     function setupEventListeners() {
-        // Artikel hinzufügen
+        // Artikel hinzufÃ¼gen
         elements.btnAdd.addEventListener('click', () => {
             if (addArtikel(elements.inputArtikel.value)) {
                 elements.inputArtikel.value = '';
@@ -328,8 +500,36 @@
                     elements.inputArtikel.value = '';
                 }
             }
+            // Escape: Autocomplete schlieÃŸen
+            if (e.key === 'Escape') {
+                hideAutocomplete();
+            }
         });
-        
+
+        // Autocomplete bei Eingabe
+        elements.inputArtikel.addEventListener('input', (e) => {
+            showAutocomplete(e.target.value);
+        });
+
+        elements.inputArtikel.addEventListener('blur', () => {
+            // Kurze VerzÃ¶gerung damit Klick auf Autocomplete-Item noch registriert wird
+            setTimeout(hideAutocomplete, 150);
+        });
+
+        // Autocomplete-Item klicken
+        if (elements.autocompleteList) {
+            elements.autocompleteList.addEventListener('click', (e) => {
+                const item = e.target.closest('.autocomplete-item');
+                if (item) {
+                    const name = item.dataset.name;
+                    if (addArtikel(name)) {
+                        elements.inputArtikel.value = '';
+                        elements.inputArtikel.focus();
+                    }
+                }
+            });
+        }
+
         // Chips klicken
         elements.chipsContainer.addEventListener('click', (e) => {
             const chip = e.target.closest('.chip');
@@ -338,7 +538,7 @@
             }
         });
         
-        // Artikel löschen
+        // Artikel lÃ¶schen
         elements.artikelListe.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.btn-delete');
             if (deleteBtn) {
@@ -349,18 +549,17 @@
         
         // Einkauf starten
         elements.btnStartEinkauf.addEventListener('click', () => {
-            // Alle Checks zurücksetzen
             state.liste.forEach(a => a.checked = false);
             saveData();
             showScreen('einkauf');
         });
         
-        // Vorschläge Button
+        // VorschlÃ¤ge Button: scrollt zu "HÃ¤ufig gekauft"
         elements.btnVorschlaege?.addEventListener('click', () => {
             elements.sectionHaeufig.scrollIntoView({ behavior: 'smooth' });
         });
         
-        // Zurück Button
+        // ZurÃ¼ck Button
         elements.btnBack.addEventListener('click', () => {
             showScreen('planen');
         });
@@ -374,16 +573,13 @@
             }
         });
         
-        // Einkauf abschließen
+        // Einkauf abschlieÃŸen
         elements.btnAbschliessen.addEventListener('click', showDialog);
         elements.btnConfirmAbschluss.addEventListener('click', completeEinkauf);
         elements.btnCancelAbschluss.addEventListener('click', hideDialog);
         
-        // Dialog Overlay klicken
         elements.dialogOverlay.addEventListener('click', (e) => {
-            if (e.target === elements.dialogOverlay) {
-                hideDialog();
-            }
+            if (e.target === elements.dialogOverlay) hideDialog();
         });
         
         // Navigation
@@ -393,24 +589,35 @@
             });
         });
         
-        // Voice Button (Platzhalter für zukünftige Spracheingabe)
-        elements.btnVoice?.addEventListener('click', () => {
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                startVoiceInput();
+        // Dark Mode Toggle (Einstellungen-Button â†’ wird zur Sonne/Mond)
+        elements.btnSettings?.addEventListener('click', toggleDarkMode);
+
+        // ==========================================
+        // Diktierfunktion â€“ Firefox-kompatibel
+        // ==========================================
+        if (elements.btnVoice) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (SpeechRecognition) {
+                // Browser unterstÃ¼tzt Diktierfunktion â†’ Button anzeigen
+                elements.btnVoice.style.display = 'flex';
+                elements.btnVoice.addEventListener('click', startVoiceInput);
             } else {
-                alert('Spracheingabe wird von diesem Browser nicht unterstützt.');
+                // Kein Support (z.B. Firefox ohne Flag) â†’ Button ausblenden
+                elements.btnVoice.style.display = 'none';
             }
-        });
+        }
     }
 
     // ==========================================
-    // Voice Input (Optional)
+    // Diktierfunktion
     // ==========================================
     
     function startVoiceInput() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+
         const recognition = new SpeechRecognition();
-        
         recognition.lang = 'de-DE';
         recognition.continuous = false;
         recognition.interimResults = false;
@@ -428,7 +635,8 @@
             elements.btnVoice.classList.remove('listening');
         };
         
-        recognition.onerror = () => {
+        recognition.onerror = (e) => {
+            console.warn('Diktierfehler:', e.error);
             elements.btnVoice.classList.remove('listening');
         };
         
@@ -443,7 +651,7 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
                 .then(() => console.log('Service Worker registriert'))
-                .catch(err => console.log('SW Registrierung fehlgeschlagen:', err));
+                .catch(err => console.warn('SW Registrierung fehlgeschlagen:', err));
         }
     }
 
@@ -453,13 +661,13 @@
     
     function init() {
         loadData();
+        applyDarkMode();
         renderChips();
         renderPlanenListe();
         setupEventListeners();
         registerServiceWorker();
     }
 
-    // DOM Ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

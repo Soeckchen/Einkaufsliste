@@ -1,10 +1,13 @@
-const CACHE_NAME = 'einkaufsliste-v1';
+const CACHE_NAME = 'einkaufsliste-v2';
+const BASE = '/Einkaufsliste/';
 const ASSETS = [
-    '/',
-    '/index.html',
-    '/css/styles.css',
-    '/js/app.js',
-    '/manifest.json'
+    BASE,
+    BASE + 'index.html',
+    BASE + 'css/styles.css',
+    BASE + 'js/app.js',
+    BASE + 'manifest.json',
+    BASE + 'icons/icon-192.png',
+    BASE + 'icons/icon-512.png'
 ];
 
 // Install
@@ -16,7 +19,7 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// Activate
+// Activate â€“ alte Caches lÃ¶schen
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then(keys => {
@@ -28,11 +31,24 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch
+// Fetch â€“ Cache first, dann Netzwerk
 self.addEventListener('fetch', (event) => {
+    // Nur GET-Requests cachen
+    if (event.request.method !== 'GET') return;
+
     event.respondWith(
         caches.match(event.request)
-            .then(response => response || fetch(event.request))
-            .catch(() => caches.match('/index.html'))
+            .then(response => {
+                if (response) return response;
+                return fetch(event.request).then(networkResponse => {
+                    // Erfolgreiche Antworten in Cache aufnehmen
+                    if (networkResponse && networkResponse.status === 200) {
+                        const clone = networkResponse.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                    }
+                    return networkResponse;
+                });
+            })
+            .catch(() => caches.match(BASE + 'index.html'))
     );
 });

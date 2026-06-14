@@ -7,10 +7,10 @@
     <meta name="description" content="Einfache Einkaufslisten-App für die Familie">
     <title>Einkaufsliste</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='[w3.org](http://www.w3.org/2000/svg)' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
-    <link rel="preconnect" href="[fonts.googleapis.com](https://fonts.googleapis.com)">
-    <link rel="preconnect" href="[fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
-    <link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap)" rel="stylesheet">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -19,10 +19,18 @@
         <section id="screen-planen" class="screen active">
             <header class="header">
                 <h1>Einkauf planen</h1>
-                <button class="icon-btn" id="btn-settings" aria-label="Einstellungen">
+                <!-- Sonnen-Icon für Dark Mode Toggle -->
+                <button class="icon-btn" id="btn-settings" aria-label="Dark Mode umschalten">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"></path>
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
             </header>
@@ -45,6 +53,8 @@
                             </svg>
                         </button>
                     </div>
+                    <!-- Autocomplete-Dropdown -->
+                    <ul class="autocomplete-list" id="autocomplete-list" style="display:none;"></ul>
                 </div>
 
                 <!-- Häufig gekauft -->
@@ -99,8 +109,8 @@
                 </button>
             </div>
 
-            <!-- Voice Button -->
-            <button class="fab" id="btn-voice" aria-label="Spracheingabe">
+            <!-- Voice Button (wird per JS aus- oder eingeblendet je nach Browser-Support) -->
+            <button class="fab" id="btn-voice" aria-label="Spracheingabe" style="display:none;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
@@ -142,7 +152,6 @@
             </div>
 
             <main class="content einkauf-content">
-                <!-- Kategorien -->
                 <div id="einkauf-kategorien">
                     <!-- Kategorien werden per JS generiert -->
                 </div>
