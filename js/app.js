@@ -117,6 +117,10 @@
             ariaMengeErhoehen: 'Menge erhöhen',
             ariaExport: 'Liste exportieren',
             ariaImport: 'Liste importieren',
+            ariaShareApp: 'App per QR-Code teilen',
+            qrDialogTitle: 'App teilen',
+            qrDialogText: 'Diesen Code scannen, um die App zu öffnen.',
+            btnSchliessen: 'Schließen',
             exportLeerAlert: 'Deine Liste ist leer – es gibt nichts zu exportieren.',
             importUngueltigAlert: 'Diese Datei enthält keine gültige Einkaufsliste.',
             importJsonFehlerAlert: 'Datei konnte nicht gelesen werden: kein gültiges JSON.',
@@ -160,6 +164,10 @@
             ariaMengeErhoehen: 'Increase quantity',
             ariaExport: 'Export list',
             ariaImport: 'Import list',
+            ariaShareApp: 'Share app via QR code',
+            qrDialogTitle: 'Share app',
+            qrDialogText: 'Scan this code to open the app.',
+            btnSchliessen: 'Close',
             exportLeerAlert: 'Your list is empty – there is nothing to export.',
             importUngueltigAlert: 'This file does not contain a valid shopping list.',
             importJsonFehlerAlert: 'Could not read file: invalid JSON.',
@@ -249,7 +257,14 @@
         navPlanenText: document.getElementById('nav-planen-text'),
         navEinkaufText: document.getElementById('nav-einkauf-text'),
         dialogTitleEl: document.getElementById('dialog-title'),
-        dialogTextEl: document.getElementById('dialog-text')
+        dialogTextEl: document.getElementById('dialog-text'),
+        btnShareApp: document.getElementById('btn-share-app'),
+        qrDialogOverlay: document.getElementById('qr-dialog-overlay'),
+        qrDialogTitleEl: document.getElementById('qr-dialog-title'),
+        qrDialogTextEl: document.getElementById('qr-dialog-text'),
+        qrCanvas: document.getElementById('qr-canvas'),
+        qrUrlText: document.getElementById('qr-url'),
+        btnCloseQr: document.getElementById('btn-close-qr')
     };
 
     // ==========================================
@@ -538,6 +553,10 @@
         if (elements.inputNeueListe) elements.inputNeueListe.placeholder = t('placeholderNeueListe');
         elements.btnExport?.setAttribute('aria-label', t('ariaExport'));
         elements.btnImport?.setAttribute('aria-label', t('ariaImport'));
+        elements.btnShareApp?.setAttribute('aria-label', t('ariaShareApp'));
+        setText(elements.qrDialogTitleEl, t('qrDialogTitle'));
+        setText(elements.qrDialogTextEl, t('qrDialogText'));
+        setText(elements.btnCloseQr, t('btnSchliessen'));
 
         renderPlanenListe();
         if (elements.screenEinkauf.classList.contains('active')) {
@@ -992,6 +1011,69 @@
     }
 
     // ==========================================
+    // App per QR-Code teilen
+    // ==========================================
+
+    /**
+     * Zeichnet einen QR-Code für die aktuelle App-URL auf ein Canvas und legt
+     * das App-Icon mittig darüber. Fehlerkorrektur-Level 'H' verkraftet bis zu
+     * ~30% verdeckte Fläche, ein zentrales Logo bleibt also problemlos scanbar.
+     */
+    function renderAppQrCode(url) {
+        const canvas = elements.qrCanvas;
+        if (!canvas || typeof qrcode === 'undefined') return;
+
+        const qr = qrcode(0, 'H');
+        qr.addData(url);
+        qr.make();
+
+        // Ruhezone: Scanner brauchen mindestens 4 Module weißen Rand rundherum,
+        // sonst wird der Code oft gar nicht erst als QR-Code erkannt.
+        const QUIET_ZONE_MODULES = 4;
+        const moduleCount = qr.getModuleCount();
+        const cellSize = Math.max(4, Math.floor(280 / (moduleCount + QUIET_ZONE_MODULES * 2)));
+        const quietZonePx = QUIET_ZONE_MODULES * cellSize;
+        const size = moduleCount * cellSize + quietZonePx * 2;
+        canvas.width = size;
+        canvas.height = size;
+
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = '#000000';
+        for (let row = 0; row < moduleCount; row++) {
+            for (let col = 0; col < moduleCount; col++) {
+                if (qr.isDark(row, col)) {
+                    ctx.fillRect(quietZonePx + col * cellSize, quietZonePx + row * cellSize, cellSize, cellSize);
+                }
+            }
+        }
+
+        const logo = new Image();
+        logo.onload = () => {
+            const logoSize = size * 0.22;
+            const pad = logoSize * 0.14;
+            const x = (size - logoSize) / 2;
+            const y = (size - logoSize) / 2;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x - pad, y - pad, logoSize + pad * 2, logoSize + pad * 2);
+            ctx.drawImage(logo, x, y, logoSize, logoSize);
+        };
+        logo.src = 'icons/icon-192.png';
+    }
+
+    function showQrDialog() {
+        const url = location.origin + location.pathname;
+        elements.qrUrlText.textContent = url;
+        renderAppQrCode(url);
+        elements.qrDialogOverlay.classList.add('active');
+    }
+
+    function hideQrDialog() {
+        elements.qrDialogOverlay.classList.remove('active');
+    }
+
+    // ==========================================
     // Event Listeners
     // ==========================================
     
@@ -1169,7 +1251,14 @@
         elements.dialogOverlay.addEventListener('click', (e) => {
             if (e.target === elements.dialogOverlay) hideDialog();
         });
-        
+
+        // App per QR-Code teilen
+        elements.btnShareApp?.addEventListener('click', showQrDialog);
+        elements.btnCloseQr?.addEventListener('click', hideQrDialog);
+        elements.qrDialogOverlay?.addEventListener('click', (e) => {
+            if (e.target === elements.qrDialogOverlay) hideQrDialog();
+        });
+
         // Navigation
         elements.navItems.forEach(item => {
             item.addEventListener('click', () => {

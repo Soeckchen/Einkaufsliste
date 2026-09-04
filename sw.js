@@ -5,6 +5,7 @@ const ASSETS = [
     BASE + 'index.html',
     BASE + 'css/styles.css',
     BASE + 'js/app.js',
+    BASE + 'js/lib/qrcode.js',
     BASE + 'manifest.json',
     BASE + 'icons/icon-192.png',
     BASE + 'icons/icon-512.png'

@@ -58,6 +58,16 @@
                         </svg>
                     </button>
                     <input type="file" id="input-import-file" accept="application/json,.json" hidden>
+                    <button class="icon-btn" id="btn-share-app" aria-label="App per QR-Code teilen">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                            <line x1="14" y1="14" x2="14" y2="21"></line>
+                            <line x1="21" y1="14" x2="21" y2="21"></line>
+                            <line x1="14" y1="17.5" x2="21" y2="17.5"></line>
+                        </svg>
+                    </button>
                     <button class="icon-btn lang-btn" id="btn-lang" aria-label="Sprache wechseln">EN</button>
                     <!-- Sonnen-Icon für Dark Mode Toggle -->
                     <button class="icon-btn" id="btn-settings" aria-label="Dark Mode umschalten">
@@ -239,8 +249,24 @@
                 </div>
             </div>
         </div>
+
+        <!-- QR-Dialog: App-Link teilen -->
+        <div class="dialog-overlay" id="qr-dialog-overlay">
+            <div class="dialog">
+                <h2 id="qr-dialog-title">App teilen</h2>
+                <p id="qr-dialog-text">Diesen Code scannen, um die App zu öffnen.</p>
+                <div class="qr-canvas-wrap">
+                    <canvas id="qr-canvas"></canvas>
+                </div>
+                <p class="qr-url" id="qr-url"></p>
+                <div class="dialog-actions">
+                    <button class="btn-text" id="btn-close-qr">Schließen</button>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <script src="js/lib/qrcode.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
