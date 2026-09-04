@@ -182,6 +182,30 @@
             .sort((a, b) => b.count - a.count);
     }
 
+    /**
+     * Durchsucht Kaufhistorie (priorisiert, nach Häufigkeit) und Standard-Artikel
+     * nach `query`, schließt Namen aus `excludeNames` aus und dedupliziert nach Name.
+     * exact=true vergleicht auf Gleichheit statt auf Teilstring (für Direkt-Lookups).
+     */
+    function getArtikelPool({ query = '', exact = false, excludeNames = new Set(), limit = Infinity } = {}) {
+        const q = query.toLowerCase().trim();
+        const results = [];
+        const seen = new Set();
+
+        const tryAdd = (item) => {
+            const key = item.name.toLowerCase();
+            if (seen.has(key) || excludeNames.has(key)) return;
+            if (q && (exact ? key !== q : !key.includes(q))) return;
+            results.push(item);
+            seen.add(key);
+        };
+
+        getHistorySorted().forEach(item => tryAdd({ ...item, fromHistory: true }));
+        STANDARD_ARTIKEL.forEach(artikel => tryAdd({ ...artikel, count: 0, fromHistory: false }));
+
+        return results.slice(0, limit);
+    }
+
     // ==========================================
     // Dark Mode
     // ==========================================
@@ -255,31 +279,8 @@
      */
     function getAutocompleteItems(query) {
         if (!query || query.length < 1) return [];
-        const q = query.toLowerCase().trim();
         const inListe = new Set(state.liste.map(a => a.name.toLowerCase()));
-
-        const results = [];
-        const seen = new Set();
-
-        // 1. Aus Kaufhistorie (sortiert nach count)
-        getHistorySorted().forEach(item => {
-            const key = item.name.toLowerCase();
-            if (key.includes(q) && !inListe.has(key) && !seen.has(key)) {
-                results.push({ ...item, fromHistory: true });
-                seen.add(key);
-            }
-        });
-
-        // 2. Aus Standard-Artikeln
-        STANDARD_ARTIKEL.forEach(artikel => {
-            const key = artikel.name.toLowerCase();
-            if (key.includes(q) && !inListe.has(key) && !seen.has(key)) {
-                results.push({ ...artikel, count: 0, fromHistory: false });
-                seen.add(key);
-            }
-        });
-
-        return results.slice(0, 6);
+        return getArtikelPool({ query, excludeNames: inListe, limit: 6 });
     }
 
     function showAutocomplete(query) {
@@ -316,13 +317,8 @@
     // ==========================================
     
     function findArtikelInfo(name) {
-        const normalized = name.toLowerCase().trim();
-        // Zuerst in History suchen (enthält echte Nutzerdaten)
-        if (state.history[normalized]) {
-            const h = state.history[normalized];
-            return { name: h.name, emoji: h.emoji, kategorie: h.kategorie };
-        }
-        return STANDARD_ARTIKEL.find(a => a.name.toLowerCase() === normalized);
+        const [match] = getArtikelPool({ query: name, exact: true, limit: 1 });
+        return match ? { name: match.name, emoji: match.emoji, kategorie: match.kategorie } : undefined;
     }
 
     function addArtikel(name) {
@@ -381,21 +377,7 @@
      */
     function renderChips() {
         const inListe = new Set(state.liste.map(a => a.name.toLowerCase()));
-
-        // Aus History (häufigste zuerst)
-        const fromHistory = getHistorySorted()
-            .filter(a => !inListe.has(a.name.toLowerCase()))
-            .slice(0, 8);
-
-        // Wenn History leer: Standard-Artikel als Fallback
-        let chips = fromHistory;
-        if (chips.length < 8) {
-            const seen = new Set(chips.map(a => a.name.toLowerCase()));
-            const fallback = STANDARD_ARTIKEL
-                .filter(a => !inListe.has(a.name.toLowerCase()) && !seen.has(a.name.toLowerCase()))
-                .slice(0, 8 - chips.length);
-            chips = [...chips, ...fallback];
-        }
+        const chips = getArtikelPool({ excludeNames: inListe, limit: 8 });
 
         elements.chipsContainer.innerHTML = chips.map(artikel => {
             const { emoji, name, badge } = renderArtikelInhalt(artikel, { count: artikel.count, countClass: 'chip-count' });
