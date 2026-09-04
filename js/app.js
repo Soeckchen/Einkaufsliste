@@ -102,7 +102,10 @@
         listenDropdown: document.getElementById('listen-dropdown'),
         listenDropdownListe: document.getElementById('listen-dropdown-liste'),
         inputNeueListe: document.getElementById('input-neue-liste'),
-        btnNeueListe: document.getElementById('btn-neue-liste')
+        btnNeueListe: document.getElementById('btn-neue-liste'),
+        btnExport: document.getElementById('btn-export'),
+        btnImport: document.getElementById('btn-import'),
+        inputImportFile: document.getElementById('input-import-file')
     };
 
     // ==========================================
@@ -470,6 +473,95 @@
             renderEinkaufListe();
             updateProgress();
         }
+    }
+
+    // ==========================================
+    // Export & Import
+    // ==========================================
+
+    /**
+     * Exportiert die aktuelle Liste als JSON-Datei (Datei-Download).
+     */
+    function exportListe() {
+        const items = aktiveListe().items;
+        if (items.length === 0) {
+            alert('Deine Liste ist leer – es gibt nichts zu exportieren.');
+            return;
+        }
+
+        const payload = {
+            app: 'einkaufsliste',
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            listeName: aktiveListe().name,
+            liste: items.map(a => ({ name: a.name, emoji: a.emoji, kategorie: a.kategorie, menge: a.menge }))
+        };
+
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `einkaufsliste_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    /**
+     * Führt eine importierte Liste mit der bestehenden zusammen.
+     * Artikel mit bereits vorhandenem Namen werden übersprungen.
+     */
+    function importListe(data) {
+        if (!data || !Array.isArray(data.liste)) {
+            alert('Diese Datei enthält keine gültige Einkaufsliste.');
+            return;
+        }
+
+        const items = aktiveListe().items;
+        const bekannteNamen = new Set(items.map(a => a.name.toLowerCase()));
+        let importiert = 0;
+        let uebersprungen = 0;
+
+        data.liste.forEach(item => {
+            if (!item || typeof item.name !== 'string' || !item.name.trim()) return;
+            const name = item.name.trim();
+            const key = name.toLowerCase();
+            if (bekannteNamen.has(key)) {
+                uebersprungen++;
+                return;
+            }
+            items.push({
+                id: generateId(),
+                name,
+                emoji: typeof item.emoji === 'string' && item.emoji ? item.emoji : '🛒',
+                kategorie: typeof item.kategorie === 'string' && item.kategorie ? item.kategorie : 'Sonstiges',
+                menge: Number.isInteger(item.menge) ? Math.min(MENGE_MAX, Math.max(MENGE_MIN, item.menge)) : 1,
+                checked: false
+            });
+            bekannteNamen.add(key);
+            importiert++;
+        });
+
+        saveData();
+        renderPlanenListe();
+
+        const teile = [`${importiert} Artikel importiert`];
+        if (uebersprungen > 0) teile.push(`${uebersprungen} bereits vorhanden übersprungen`);
+        alert(teile.join(', ') + '.');
+    }
+
+    function handleImportFile(file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                importListe(JSON.parse(reader.result));
+            } catch (e) {
+                alert('Datei konnte nicht gelesen werden: kein gültiges JSON.');
+            }
+        };
+        reader.onerror = () => alert('Datei konnte nicht gelesen werden.');
+        reader.readAsText(file);
     }
 
     // ==========================================
@@ -857,6 +949,15 @@
         
         // Dark Mode Toggle (Einstellungen-Button → wird zur Sonne/Mond)
         elements.btnSettings?.addEventListener('click', toggleDarkMode);
+
+        // Liste exportieren / importieren
+        elements.btnExport?.addEventListener('click', exportListe);
+        elements.btnImport?.addEventListener('click', () => elements.inputImportFile.click());
+        elements.inputImportFile?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleImportFile(file);
+            e.target.value = '';
+        });
 
         // ==========================================
         // Diktierfunktion – Firefox-kompatibel
