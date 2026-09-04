@@ -98,7 +98,8 @@
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 const parsed = JSON.parse(saved);
-                state.liste = parsed.liste || [];
+                // Migration: ältere Listen kannten noch kein "menge"-Feld
+                state.liste = (parsed.liste || []).map(a => ({ menge: 1, ...a }));
             }
         } catch (e) {
             console.error('Fehler beim Laden:', e);
@@ -353,6 +354,7 @@
             name: info ? info.name : trimmed,
             emoji: info ? info.emoji : '🛒',
             kategorie: info ? info.kategorie : 'Sonstiges',
+            menge: 1,
             checked: false
         });
         
@@ -364,6 +366,17 @@
 
     function removeArtikel(id) {
         state.liste = state.liste.filter(a => a.id !== id);
+        saveData();
+        renderPlanenListe();
+    }
+
+    const MENGE_MIN = 1;
+    const MENGE_MAX = 99;
+
+    function changeMenge(id, delta) {
+        const artikel = state.liste.find(a => a.id === id);
+        if (!artikel) return;
+        artikel.menge = Math.min(MENGE_MAX, Math.max(MENGE_MIN, artikel.menge + delta));
         saveData();
         renderPlanenListe();
     }
@@ -415,6 +428,11 @@
                         <div class="artikel-icon">${emoji}</div>
                         <span class="artikel-name">${name}</span>
                     </div>
+                    <div class="menge-stepper" data-id="${artikel.id}">
+                        <button class="menge-btn" data-delta="-1" aria-label="Menge verringern" ${artikel.menge <= MENGE_MIN ? 'disabled' : ''}>−</button>
+                        <span class="menge-value">${artikel.menge}</span>
+                        <button class="menge-btn" data-delta="1" aria-label="Menge erhöhen" ${artikel.menge >= MENGE_MAX ? 'disabled' : ''}>+</button>
+                    </div>
                     <button class="btn-delete" data-id="${artikel.id}" aria-label="Löschen">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="3 6 5 6 21 6"></polyline>
@@ -455,6 +473,7 @@
                             </div>
                             <div class="einkauf-item-content">
                                 <span class="einkauf-item-name">${name}</span>
+                                ${artikel.menge > 1 ? `<span class="einkauf-item-detail">${artikel.menge}×</span>` : ''}
                             </div>
                         </li>
                         `;
@@ -577,6 +596,15 @@
             if (deleteBtn) {
                 const id = parseInt(deleteBtn.dataset.id, 10);
                 removeArtikel(id);
+                return;
+            }
+
+            // Menge per Stepper anpassen
+            const mengeBtn = e.target.closest('.menge-btn');
+            if (mengeBtn) {
+                const id = parseInt(mengeBtn.closest('.menge-stepper').dataset.id, 10);
+                const delta = parseInt(mengeBtn.dataset.delta, 10);
+                changeMenge(id, delta);
             }
         });
         
