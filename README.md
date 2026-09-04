@@ -16,3 +16,4 @@
 | Mehrere Listen | Beliebig viele benannte Listen, wechseln/anlegen/umbenennen/löschen über den Header |
 | Export/Import | Liste als JSON-Datei speichern und teilen, Import führt zusammen statt zu überschreiben |
 | Deutsch/Englisch | Sprachumschaltung im Header, inkl. Standard-Artikel und Kategorien |
+| App per QR-Code teilen | Zeigt einen QR-Code mit App-Icon in der Mitte, der auf die App-URL verweist – komplett lokal erzeugt |
