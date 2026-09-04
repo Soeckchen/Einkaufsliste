@@ -17,3 +17,7 @@
 | Export/Import | Liste als JSON-Datei speichern und teilen, Import führt zusammen statt zu überschreiben |
 | Deutsch/Englisch | Sprachumschaltung im Header, inkl. Standard-Artikel und Kategorien |
 | App per QR-Code teilen | Zeigt einen QR-Code mit App-Icon in der Mitte, der auf die App-URL verweist – komplett lokal erzeugt |
+
+## License
+
+MIT – siehe [LICENSE](LICENSE).
