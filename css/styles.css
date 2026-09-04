@@ -189,6 +189,12 @@ ul {
     background: var(--color-outline-variant);
 }
 
+.lang-btn {
+    font: var(--text-label);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
 /* ========================================
    Listen-Picker & Dropdown
    ======================================== */
