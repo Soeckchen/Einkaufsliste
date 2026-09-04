@@ -1,4 +1,4 @@
-const CACHE_NAME = 'einkaufsliste-v2';
+const CACHE_NAME = 'einkaufsliste-v3';
 const BASE = '/Einkaufsliste/';
 const ASSETS = [
     BASE,
