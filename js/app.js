@@ -53,7 +53,6 @@
     
     let state = {
         liste: [],
-        currentScreen: 'planen',
         // Kaufhistorie: { name -> { count, emoji, kategorie } }
         history: {},
         darkMode: false
@@ -315,7 +314,18 @@
     // ==========================================
     // Artikel Funktionen
     // ==========================================
-    
+
+    let lastId = 0;
+
+    /**
+     * Monoton steigende ID. Date.now() allein kollidiert, wenn zwei Artikel
+     * innerhalb derselben Millisekunde hinzugefügt werden.
+     */
+    function generateId() {
+        lastId = Math.max(Date.now(), lastId + 1);
+        return lastId;
+    }
+
     function findArtikelInfo(name) {
         const [match] = getArtikelPool({ query: name, exact: true, limit: 1 });
         return match ? { name: match.name, emoji: match.emoji, kategorie: match.kategorie } : undefined;
@@ -339,7 +349,7 @@
         
         const info = findArtikelInfo(trimmed);
         state.liste.push({
-            id: Date.now(),
+            id: generateId(),
             name: info ? info.name : trimmed,
             emoji: info ? info.emoji : '🛒',
             kategorie: info ? info.kategorie : 'Sonstiges',
@@ -468,8 +478,6 @@
     // ==========================================
     
     function showScreen(screenName) {
-        state.currentScreen = screenName;
-        
         elements.screenPlanen.classList.toggle('active', screenName === 'planen');
         elements.screenEinkauf.classList.toggle('active', screenName === 'einkauf');
         
@@ -567,7 +575,7 @@
         elements.artikelListe.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.btn-delete');
             if (deleteBtn) {
-                const id = parseInt(deleteBtn.dataset.id);
+                const id = parseInt(deleteBtn.dataset.id, 10);
                 removeArtikel(id);
             }
         });
@@ -593,7 +601,7 @@
         elements.einkaufKategorien.addEventListener('click', (e) => {
             const item = e.target.closest('.einkauf-item');
             if (item) {
-                const id = parseInt(item.dataset.id);
+                const id = parseInt(item.dataset.id, 10);
                 toggleArtikel(id);
             }
         });
