@@ -52,11 +52,21 @@
     // ==========================================
     
     let state = {
-        liste: [],
-        // Kaufhistorie: { name -> { count, emoji, kategorie } }
+        // Mehrere benannte Listen: [{ id, name, items: [...] }]
+        listen: [],
+        aktiveListeId: null,
+        // Kaufhistorie ist listenübergreifend: { name -> { count, emoji, kategorie } }
         history: {},
         darkMode: false
     };
+
+    /**
+     * Die gerade ausgewählte Liste – einziger Zugriffspunkt auf die Artikel,
+     * die in Planen/Einkauf angezeigt werden.
+     */
+    function aktiveListe() {
+        return state.listen.find(l => l.id === state.aktiveListeId);
+    }
 
     // ==========================================
     // DOM Elemente
@@ -86,7 +96,13 @@
         navItems: document.querySelectorAll('.nav-item'),
         btnVoice: document.getElementById('btn-voice'),
         btnSettings: document.getElementById('btn-settings'),
-        autocompleteList: document.getElementById('autocomplete-list')
+        autocompleteList: document.getElementById('autocomplete-list'),
+        headerPlanenTitle: document.getElementById('header-planen-title'),
+        btnListePicker: document.getElementById('btn-liste-picker'),
+        listenDropdown: document.getElementById('listen-dropdown'),
+        listenDropdownListe: document.getElementById('listen-dropdown-liste'),
+        inputNeueListe: document.getElementById('input-neue-liste'),
+        btnNeueListe: document.getElementById('btn-neue-liste')
     };
 
     // ==========================================
@@ -96,13 +112,27 @@
     function loadData() {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                state.liste = parsed.liste || [];
+            const parsed = saved ? JSON.parse(saved) : null;
+
+            if (parsed && Array.isArray(parsed.listen) && parsed.listen.length > 0) {
+                state.listen = parsed.listen;
+                state.aktiveListeId = parsed.listen.some(l => l.id === parsed.aktiveListeId)
+                    ? parsed.aktiveListeId
+                    : parsed.listen[0].id;
+            } else if (parsed && Array.isArray(parsed.liste)) {
+                // Migration: Daten von vor dem Mehrere-Listen-Feature (eine namenlose Liste)
+                const id = generateId();
+                state.listen = [{ id, name: 'Einkaufsliste', items: parsed.liste }];
+                state.aktiveListeId = id;
             }
         } catch (e) {
             console.error('Fehler beim Laden:', e);
-            state.liste = [];
+        }
+
+        if (state.listen.length === 0) {
+            const id = generateId();
+            state.listen = [{ id, name: 'Einkaufsliste', items: [] }];
+            state.aktiveListeId = id;
         }
 
         try {
@@ -128,7 +158,7 @@
 
     function saveData() {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ liste: state.liste }));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ listen: state.listen, aktiveListeId: state.aktiveListeId }));
         } catch (e) {
             console.error('Fehler beim Speichern:', e);
         }
@@ -151,6 +181,52 @@
     }
 
     // ==========================================
+    // Listen-Verwaltung
+    // ==========================================
+
+    function erstelleListe(name) {
+        const trimmed = name.trim();
+        if (!trimmed) return;
+        const id = generateId();
+        state.listen.push({ id, name: trimmed, items: [] });
+        state.aktiveListeId = id;
+        saveData();
+        renderPlanenListe();
+        renderListenDropdown();
+    }
+
+    function waehleListe(id) {
+        if (id === state.aktiveListeId) return;
+        state.aktiveListeId = id;
+        saveData();
+        renderPlanenListe();
+        renderListenDropdown();
+    }
+
+    function benenneListeUm(id, neuerName) {
+        const liste = state.listen.find(l => l.id === id);
+        if (!liste) return;
+        const trimmed = neuerName.trim();
+        if (trimmed) {
+            liste.name = trimmed;
+            saveData();
+            renderPlanenListe();
+        }
+        renderListenDropdown();
+    }
+
+    function loescheListe(id) {
+        if (state.listen.length <= 1) return; // mindestens eine Liste bleibt immer bestehen
+        state.listen = state.listen.filter(l => l.id !== id);
+        if (state.aktiveListeId === id) {
+            state.aktiveListeId = state.listen[0].id;
+        }
+        saveData();
+        renderPlanenListe();
+        renderListenDropdown();
+    }
+
+    // ==========================================
     // Kaufhistorie
     // ==========================================
 
@@ -158,7 +234,7 @@
      * Erhöht den Zähler für alle abgehakten Artikel beim Abschluss des Einkaufs.
      */
     function recordPurchases() {
-        state.liste.forEach(artikel => {
+        aktiveListe().items.forEach(artikel => {
             const key = artikel.name.toLowerCase();
             if (!state.history[key]) {
                 state.history[key] = {
@@ -278,7 +354,7 @@
      */
     function getAutocompleteItems(query) {
         if (!query || query.length < 1) return [];
-        const inListe = new Set(state.liste.map(a => a.name.toLowerCase()));
+        const inListe = new Set(aktiveListe().items.map(a => a.name.toLowerCase()));
         return getArtikelPool({ query, excludeNames: inListe, limit: 6 });
     }
 
@@ -335,7 +411,7 @@
         const trimmed = name.trim();
         if (!trimmed) return false;
         
-        const exists = state.liste.some(a => a.name.toLowerCase() === trimmed.toLowerCase());
+        const exists = aktiveListe().items.some(a => a.name.toLowerCase() === trimmed.toLowerCase());
         if (exists) {
             const lower = trimmed.toLowerCase();
             const existingItem = Array.from(elements.artikelListe.children)
@@ -346,16 +422,16 @@
             }
             return false;
         }
-        
+
         const info = findArtikelInfo(trimmed);
-        state.liste.push({
+        aktiveListe().items.push({
             id: generateId(),
             name: info ? info.name : trimmed,
             emoji: info ? info.emoji : '🛒',
             kategorie: info ? info.kategorie : 'Sonstiges',
             checked: false
         });
-        
+
         saveData();
         renderPlanenListe();
         hideAutocomplete();
@@ -363,13 +439,14 @@
     }
 
     function removeArtikel(id) {
-        state.liste = state.liste.filter(a => a.id !== id);
+        const liste = aktiveListe();
+        liste.items = liste.items.filter(a => a.id !== id);
         saveData();
         renderPlanenListe();
     }
 
     function toggleArtikel(id) {
-        const artikel = state.liste.find(a => a.id === id);
+        const artikel = aktiveListe().items.find(a => a.id === id);
         if (artikel) {
             artikel.checked = !artikel.checked;
             saveData();
@@ -381,12 +458,66 @@
     // ==========================================
     // Rendering
     // ==========================================
-    
+
+    // id der Liste, die im Dropdown gerade per Inline-Edit umbenannt wird (sonst null)
+    let umbenennenId = null;
+
+    /**
+     * Zeigt/versteckt das Listen-Dropdown und rendert es bei Bedarf neu.
+     */
+    function toggleListenDropdown(open) {
+        if (!elements.listenDropdown) return;
+        const soll = open ?? !elements.listenDropdown.classList.contains('active');
+        elements.listenDropdown.classList.toggle('active', soll);
+        if (soll) renderListenDropdown();
+    }
+
+    /**
+     * Rendert die Listen-Übersicht im Dropdown: Name, Artikelanzahl,
+     * Umbenennen/Löschen-Icons. Löschen ist deaktiviert, wenn nur eine Liste existiert.
+     */
+    function renderListenDropdown() {
+        if (!elements.listenDropdownListe) return;
+
+        elements.listenDropdownListe.innerHTML = state.listen.map(liste => {
+            const istAktiv = liste.id === state.aktiveListeId;
+            const nameBereich = liste.id === umbenennenId
+                ? `<input type="text" class="listen-item-input" data-id="${liste.id}" value="${escapeHtml(liste.name)}">`
+                : `<button class="listen-item-select" data-action="waehlen">
+                       <span class="listen-item-name">${escapeHtml(liste.name)}</span>
+                       <span class="listen-item-count">${liste.items.length}</span>
+                   </button>`;
+
+            return `
+                <li class="listen-item ${istAktiv ? 'aktiv' : ''}" data-id="${liste.id}">
+                    ${nameBereich}
+                    <button class="listen-item-icon" data-action="umbenennen" aria-label="Umbenennen">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                        </svg>
+                    </button>
+                    <button class="listen-item-icon" data-action="loeschen" aria-label="Löschen" ${state.listen.length <= 1 ? 'disabled' : ''}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </li>
+            `;
+        }).join('');
+
+        const input = elements.listenDropdownListe.querySelector('.listen-item-input');
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    }
+
     /**
      * Chips: Zeigt häufig gekaufte Artikel (aus History) + Standard-Artikel als Ergänzung.
      */
     function renderChips() {
-        const inListe = new Set(state.liste.map(a => a.name.toLowerCase()));
+        const inListe = new Set(aktiveListe().items.map(a => a.name.toLowerCase()));
         const chips = getArtikelPool({ excludeNames: inListe, limit: 8 });
 
         elements.chipsContainer.innerHTML = chips.map(artikel => {
@@ -400,14 +531,16 @@
     }
 
     function renderPlanenListe() {
-        const hasItems = state.liste.length > 0;
-        
+        const items = aktiveListe().items;
+        const hasItems = items.length > 0;
+
+        elements.headerPlanenTitle.textContent = aktiveListe().name;
         elements.emptyState.style.display = hasItems ? 'none' : 'flex';
         elements.sectionListe.style.display = hasItems ? 'block' : 'none';
         elements.ctaPlanen.style.display = hasItems ? 'block' : 'none';
         elements.screenPlanen.classList.toggle('has-items', hasItems);
-        
-        elements.artikelListe.innerHTML = state.liste.map(artikel => {
+
+        elements.artikelListe.innerHTML = items.map(artikel => {
             const { emoji, name } = renderArtikelInhalt(artikel);
             return `
                 <li class="artikel-item" data-name="${escapeHtml(artikel.name.toLowerCase())}">
@@ -431,8 +564,8 @@
     function renderEinkaufListe() {
         const grouped = {};
         KATEGORIE_REIHENFOLGE.forEach(k => grouped[k] = []);
-        
-        state.liste.forEach(artikel => {
+
+        aktiveListe().items.forEach(artikel => {
             const kat = artikel.kategorie || 'Sonstiges';
             if (!grouped[kat]) grouped[kat] = [];
             grouped[kat].push(artikel);
@@ -465,8 +598,8 @@
     }
 
     function updateProgress() {
-        const total = state.liste.length;
-        const checked = state.liste.filter(a => a.checked).length;
+        const total = aktiveListe().items.length;
+        const checked = aktiveListe().items.filter(a => a.checked).length;
         const percent = total > 0 ? (checked / total) * 100 : 0;
         
         elements.progressCount.textContent = `${checked} von ${total} erledigt`;
@@ -506,7 +639,7 @@
     function completeEinkauf() {
         // Kaufhistorie aktualisieren bevor Liste geleert wird
         recordPurchases();
-        state.liste = [];
+        aktiveListe().items = [];
         saveData();
         hideDialog();
         renderPlanenListe();
@@ -518,6 +651,74 @@
     // ==========================================
     
     function setupEventListeners() {
+        // Listen-Dropdown öffnen/schließen
+        elements.btnListePicker?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleListenDropdown();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!elements.listenDropdown?.classList.contains('active')) return;
+            if (!e.target.closest('#listen-dropdown') && !e.target.closest('#btn-liste-picker')) {
+                toggleListenDropdown(false);
+            }
+        });
+
+        // Liste wählen / umbenennen / löschen
+        elements.listenDropdownListe?.addEventListener('click', (e) => {
+            const item = e.target.closest('.listen-item');
+            if (!item) return;
+            const id = parseInt(item.dataset.id, 10);
+            const action = e.target.closest('[data-action]')?.dataset.action;
+
+            if (action === 'waehlen') {
+                waehleListe(id);
+                toggleListenDropdown(false);
+            } else if (action === 'umbenennen') {
+                umbenennenId = id;
+                renderListenDropdown();
+            } else if (action === 'loeschen') {
+                const liste = state.listen.find(l => l.id === id);
+                if (liste && confirm(`"${liste.name}" wirklich löschen?`)) {
+                    loescheListe(id);
+                }
+            }
+        });
+
+        // Inline-Umbenennen: Enter bestätigt (via blur), Escape bricht ab
+        elements.listenDropdownListe?.addEventListener('keydown', (e) => {
+            if (!e.target.classList.contains('listen-item-input')) return;
+            if (e.key === 'Enter') {
+                e.target.blur();
+            } else if (e.key === 'Escape') {
+                umbenennenId = null;
+                renderListenDropdown();
+            }
+        });
+
+        elements.listenDropdownListe?.addEventListener('blur', (e) => {
+            if (!e.target.classList.contains('listen-item-input')) return;
+            const id = parseInt(e.target.dataset.id, 10);
+            if (umbenennenId !== id) return; // bereits per Escape abgebrochen
+            umbenennenId = null;
+            benenneListeUm(id, e.target.value);
+        }, true);
+
+        // Neue Liste anlegen
+        const commitNeueListe = () => {
+            if (!elements.inputNeueListe) return;
+            erstelleListe(elements.inputNeueListe.value);
+            elements.inputNeueListe.value = '';
+            toggleListenDropdown(false);
+        };
+        elements.btnNeueListe?.addEventListener('click', commitNeueListe);
+        elements.inputNeueListe?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                commitNeueListe();
+            }
+        });
+
         // Artikel hinzufügen
         elements.btnAdd.addEventListener('click', () => {
             if (addArtikel(elements.inputArtikel.value)) {
@@ -582,7 +783,7 @@
         
         // Einkauf starten
         elements.btnStartEinkauf.addEventListener('click', () => {
-            state.liste.forEach(a => a.checked = false);
+            aktiveListe().items.forEach(a => a.checked = false);
             saveData();
             showScreen('einkauf');
         });
