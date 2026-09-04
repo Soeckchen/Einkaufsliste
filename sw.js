@@ -19,7 +19,7 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// Activate â€“ alte Caches lÃ¶schen
+// Activate – alte Caches löschen
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then(keys => {
@@ -31,7 +31,7 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// Fetch â€“ Cache first, dann Netzwerk
+// Fetch – Cache first, dann Netzwerk
 self.addEventListener('fetch', (event) => {
     // Nur GET-Requests cachen
     if (event.request.method !== 'GET') return;

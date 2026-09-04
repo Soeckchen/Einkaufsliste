@@ -188,7 +188,7 @@
 
     function applyDarkMode() {
         document.documentElement.classList.toggle('dark-mode', state.darkMode);
-        // Icon tauschen: Sonne â†” Mond
+        // Icon tauschen: Sonne ↔ Mond
         const icon = elements.btnSettings ? elements.btnSettings.querySelector('svg') : null;
         if (icon) {
             if (state.darkMode) {
@@ -214,6 +214,22 @@
         state.darkMode = !state.darkMode;
         applyDarkMode();
         saveSettings();
+    }
+
+    // ==========================================
+    // HTML-Escaping
+    // ==========================================
+
+    /**
+     * Escaped Text für sichere Einbettung in innerHTML (Text- und Attribut-Kontext).
+     */
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     // ==========================================
@@ -265,9 +281,9 @@
         }
 
         list.innerHTML = items.map(item => `
-            <li class="autocomplete-item" data-name="${item.name}">
-                <span class="autocomplete-emoji">${item.emoji}</span>
-                <span class="autocomplete-name">${item.name}</span>
+            <li class="autocomplete-item" data-name="${escapeHtml(item.name)}">
+                <span class="autocomplete-emoji">${escapeHtml(item.emoji)}</span>
+                <span class="autocomplete-name">${escapeHtml(item.name)}</span>
                 ${item.count > 0 ? `<span class="autocomplete-count">${item.count}×</span>` : ''}
             </li>
         `).join('');
@@ -299,7 +315,9 @@
         
         const exists = state.liste.some(a => a.name.toLowerCase() === trimmed.toLowerCase());
         if (exists) {
-            const existingItem = document.querySelector(`[data-name="${trimmed.toLowerCase()}"]`);
+            const lower = trimmed.toLowerCase();
+            const existingItem = Array.from(elements.artikelListe.children)
+                .find(el => el.dataset.name === lower);
             if (existingItem) {
                 existingItem.classList.add('shake');
                 setTimeout(() => existingItem.classList.remove('shake'), 300);
@@ -311,7 +329,7 @@
         state.liste.push({
             id: Date.now(),
             name: info ? info.name : trimmed,
-            emoji: info ? info.emoji : 'ðŸ›’',
+            emoji: info ? info.emoji : '🛒',
             kategorie: info ? info.kategorie : 'Sonstiges',
             checked: false
         });
@@ -364,8 +382,8 @@
         }
 
         elements.chipsContainer.innerHTML = chips.map(artikel => `
-            <button class="chip" data-name="${artikel.name}">
-                ${artikel.emoji ? artikel.emoji + ' ' : ''}${artikel.name}${artikel.count > 0 ? ` <span class="chip-count">${artikel.count}×</span>` : ''}
+            <button class="chip" data-name="${escapeHtml(artikel.name)}">
+                ${artikel.emoji ? escapeHtml(artikel.emoji) + ' ' : ''}${escapeHtml(artikel.name)}${artikel.count > 0 ? ` <span class="chip-count">${artikel.count}×</span>` : ''}
             </button>
         `).join('');
     }
@@ -379,10 +397,10 @@
         elements.screenPlanen.classList.toggle('has-items', hasItems);
         
         elements.artikelListe.innerHTML = state.liste.map(artikel => `
-            <li class="artikel-item" data-name="${artikel.name.toLowerCase()}">
+            <li class="artikel-item" data-name="${escapeHtml(artikel.name.toLowerCase())}">
                 <div class="artikel-item-left">
-                    <div class="artikel-icon">${artikel.emoji}</div>
-                    <span class="artikel-name">${artikel.name}</span>
+                    <div class="artikel-icon">${escapeHtml(artikel.emoji)}</div>
+                    <span class="artikel-name">${escapeHtml(artikel.name)}</span>
                 </div>
                 <button class="btn-delete" data-id="${artikel.id}" aria-label="Löschen">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -420,7 +438,7 @@
                                 </svg>
                             </div>
                             <div class="einkauf-item-content">
-                                <span class="einkauf-item-name">${artikel.name}</span>
+                                <span class="einkauf-item-name">${escapeHtml(artikel.name)}</span>
                             </div>
                         </li>
                     `).join('')}
@@ -589,7 +607,7 @@
             });
         });
         
-        // Dark Mode Toggle (Einstellungen-Button â†’ wird zur Sonne/Mond)
+        // Dark Mode Toggle (Einstellungen-Button → wird zur Sonne/Mond)
         elements.btnSettings?.addEventListener('click', toggleDarkMode);
 
         // ==========================================
@@ -603,7 +621,7 @@
                 elements.btnVoice.style.display = 'flex';
                 elements.btnVoice.addEventListener('click', startVoiceInput);
             } else {
-                // Kein Support (z.B. Firefox ohne Flag) â†’ Button ausblenden
+                // Kein Support (z.B. Firefox ohne Flag) → Button ausblenden
                 elements.btnVoice.style.display = 'none';
             }
         }

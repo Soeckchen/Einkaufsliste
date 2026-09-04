@@ -846,7 +846,7 @@ ul {
 }
 
 /* ========================================
-   Voice Button â€“ listening state
+   Voice Button – listening state
    ======================================== */
 .fab.listening {
     background: var(--color-error);
