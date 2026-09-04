@@ -15,35 +15,35 @@
     const SETTINGS_KEY = 'einkaufsliste_settings';
     
     const STANDARD_ARTIKEL = [
-        { name: 'Milch', emoji: 'ðŸ¥›', kategorie: 'KÃ¼hlung' },
-        { name: 'Butter', emoji: 'ðŸ§ˆ', kategorie: 'KÃ¼hlung' },
-        { name: 'Eier', emoji: 'ðŸ¥š', kategorie: 'KÃ¼hlung' },
-        { name: 'Brot', emoji: 'ðŸž', kategorie: 'Backwaren' },
-        { name: 'KÃ¤se', emoji: 'ðŸ§€', kategorie: 'KÃ¼hlung' },
-        { name: 'Joghurt', emoji: 'ðŸ¥›', kategorie: 'KÃ¼hlung' },
-        { name: 'Ã„pfel', emoji: 'ðŸŽ', kategorie: 'Obst & GemÃ¼se' },
-        { name: 'Bananen', emoji: 'ðŸŒ', kategorie: 'Obst & GemÃ¼se' },
-        { name: 'Nudeln', emoji: 'ðŸ', kategorie: 'VorrÃ¤te' },
-        { name: 'Reis', emoji: 'ðŸš', kategorie: 'VorrÃ¤te' },
-        { name: 'Kaffee', emoji: 'â˜•', kategorie: 'GetrÃ¤nke' },
-        { name: 'Wasser', emoji: 'ðŸ’§', kategorie: 'GetrÃ¤nke' },
-        { name: 'Tomaten', emoji: 'ðŸ…', kategorie: 'Obst & GemÃ¼se' },
-        { name: 'Zwiebeln', emoji: 'ðŸ§…', kategorie: 'Obst & GemÃ¼se' },
-        { name: 'Kartoffeln', emoji: 'ðŸ¥”', kategorie: 'Obst & GemÃ¼se' },
-        { name: 'HÃ¤hnchen', emoji: 'ðŸ—', kategorie: 'Fleisch' },
-        { name: 'Wurst', emoji: 'ðŸŒ­', kategorie: 'Fleisch' },
-        { name: 'OlivenÃ¶l', emoji: 'ðŸ«’', kategorie: 'VorrÃ¤te' },
-        { name: 'Zucker', emoji: 'ðŸ§‚', kategorie: 'VorrÃ¤te' },
-        { name: 'Mehl', emoji: 'ðŸŒ¾', kategorie: 'VorrÃ¤te' }
+        { name: 'Milch', emoji: '🥛', kategorie: 'Kühlung' },
+        { name: 'Butter', emoji: '🧈', kategorie: 'Kühlung' },
+        { name: 'Eier', emoji: '🥚', kategorie: 'Kühlung' },
+        { name: 'Brot', emoji: '🍞', kategorie: 'Backwaren' },
+        { name: 'Käse', emoji: '🧀', kategorie: 'Kühlung' },
+        { name: 'Joghurt', emoji: '🥛', kategorie: 'Kühlung' },
+        { name: 'Äpfel', emoji: '🍎', kategorie: 'Obst & Gemüse' },
+        { name: 'Bananen', emoji: '🍌', kategorie: 'Obst & Gemüse' },
+        { name: 'Nudeln', emoji: '🍝', kategorie: 'Vorräte' },
+        { name: 'Reis', emoji: '🍚', kategorie: 'Vorräte' },
+        { name: 'Kaffee', emoji: '☕', kategorie: 'Getränke' },
+        { name: 'Wasser', emoji: '💧', kategorie: 'Getränke' },
+        { name: 'Tomaten', emoji: '🍅', kategorie: 'Obst & Gemüse' },
+        { name: 'Zwiebeln', emoji: '🧅', kategorie: 'Obst & Gemüse' },
+        { name: 'Kartoffeln', emoji: '🥔', kategorie: 'Obst & Gemüse' },
+        { name: 'Hähnchen', emoji: '🍗', kategorie: 'Fleisch' },
+        { name: 'Wurst', emoji: '🌭', kategorie: 'Fleisch' },
+        { name: 'Olivenöl', emoji: '🫒', kategorie: 'Vorräte' },
+        { name: 'Zucker', emoji: '🧂', kategorie: 'Vorräte' },
+        { name: 'Mehl', emoji: '🌾', kategorie: 'Vorräte' }
     ];
 
     const KATEGORIE_REIHENFOLGE = [
-        'Obst & GemÃ¼se',
-        'KÃ¼hlung',
+        'Obst & Gemüse',
+        'Kühlung',
         'Fleisch',
         'Backwaren',
-        'VorrÃ¤te',
-        'GetrÃ¤nke',
+        'Vorräte',
+        'Getränke',
         'Sonstiges'
     ];
 
@@ -156,7 +156,7 @@
     // ==========================================
 
     /**
-     * ErhÃ¶ht den ZÃ¤hler fÃ¼r alle abgehakten Artikel beim Abschluss des Einkaufs.
+     * Erhöht den Zähler für alle abgehakten Artikel beim Abschluss des Einkaufs.
      */
     function recordPurchases() {
         state.liste.forEach(artikel => {
@@ -175,7 +175,7 @@
     }
 
     /**
-     * Gibt die Artikel der Kaufhistorie sortiert nach HÃ¤ufigkeit zurÃ¼ck.
+     * Gibt die Artikel der Kaufhistorie sortiert nach Häufigkeit zurück.
      */
     function getHistorySorted() {
         return Object.values(state.history)
@@ -221,7 +221,7 @@
     // ==========================================
 
     /**
-     * Erstellt Autocomplete-VorschlÃ¤ge basierend auf Eingabe.
+     * Erstellt Autocomplete-Vorschläge basierend auf Eingabe.
      * Priorisiert: 1. Kaufhistorie (nach count), 2. Standard-Artikel
      */
     function getAutocompleteItems(query) {
@@ -268,7 +268,7 @@
             <li class="autocomplete-item" data-name="${item.name}">
                 <span class="autocomplete-emoji">${item.emoji}</span>
                 <span class="autocomplete-name">${item.name}</span>
-                ${item.count > 0 ? `<span class="autocomplete-count">${item.count}Ã—</span>` : ''}
+                ${item.count > 0 ? `<span class="autocomplete-count">${item.count}×</span>` : ''}
             </li>
         `).join('');
         list.style.display = 'block';
@@ -285,7 +285,7 @@
     
     function findArtikelInfo(name) {
         const normalized = name.toLowerCase().trim();
-        // Zuerst in History suchen (enthÃ¤lt echte Nutzerdaten)
+        // Zuerst in History suchen (enthält echte Nutzerdaten)
         if (state.history[normalized]) {
             const h = state.history[normalized];
             return { name: h.name, emoji: h.emoji, kategorie: h.kategorie };
@@ -343,12 +343,12 @@
     // ==========================================
     
     /**
-     * Chips: Zeigt hÃ¤ufig gekaufte Artikel (aus History) + Standard-Artikel als ErgÃ¤nzung.
+     * Chips: Zeigt häufig gekaufte Artikel (aus History) + Standard-Artikel als Ergänzung.
      */
     function renderChips() {
         const inListe = new Set(state.liste.map(a => a.name.toLowerCase()));
 
-        // Aus History (hÃ¤ufigste zuerst)
+        // Aus History (häufigste zuerst)
         const fromHistory = getHistorySorted()
             .filter(a => !inListe.has(a.name.toLowerCase()))
             .slice(0, 8);
@@ -365,7 +365,7 @@
 
         elements.chipsContainer.innerHTML = chips.map(artikel => `
             <button class="chip" data-name="${artikel.name}">
-                ${artikel.emoji ? artikel.emoji + ' ' : ''}${artikel.name}${artikel.count > 0 ? ` <span class="chip-count">${artikel.count}Ã—</span>` : ''}
+                ${artikel.emoji ? artikel.emoji + ' ' : ''}${artikel.name}${artikel.count > 0 ? ` <span class="chip-count">${artikel.count}×</span>` : ''}
             </button>
         `).join('');
     }
@@ -384,7 +384,7 @@
                     <div class="artikel-icon">${artikel.emoji}</div>
                     <span class="artikel-name">${artikel.name}</span>
                 </div>
-                <button class="btn-delete" data-id="${artikel.id}" aria-label="LÃ¶schen">
+                <button class="btn-delete" data-id="${artikel.id}" aria-label="Löschen">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -485,7 +485,7 @@
     // ==========================================
     
     function setupEventListeners() {
-        // Artikel hinzufÃ¼gen
+        // Artikel hinzufügen
         elements.btnAdd.addEventListener('click', () => {
             if (addArtikel(elements.inputArtikel.value)) {
                 elements.inputArtikel.value = '';
@@ -500,7 +500,7 @@
                     elements.inputArtikel.value = '';
                 }
             }
-            // Escape: Autocomplete schlieÃŸen
+            // Escape: Autocomplete schließen
             if (e.key === 'Escape') {
                 hideAutocomplete();
             }
@@ -512,7 +512,7 @@
         });
 
         elements.inputArtikel.addEventListener('blur', () => {
-            // Kurze VerzÃ¶gerung damit Klick auf Autocomplete-Item noch registriert wird
+            // Kurze Verzögerung damit Klick auf Autocomplete-Item noch registriert wird
             setTimeout(hideAutocomplete, 150);
         });
 
@@ -538,7 +538,7 @@
             }
         });
         
-        // Artikel lÃ¶schen
+        // Artikel löschen
         elements.artikelListe.addEventListener('click', (e) => {
             const deleteBtn = e.target.closest('.btn-delete');
             if (deleteBtn) {
@@ -554,12 +554,12 @@
             showScreen('einkauf');
         });
         
-        // VorschlÃ¤ge Button: scrollt zu "HÃ¤ufig gekauft"
+        // Vorschläge Button: scrollt zu "Häufig gekauft"
         elements.btnVorschlaege?.addEventListener('click', () => {
             elements.sectionHaeufig.scrollIntoView({ behavior: 'smooth' });
         });
         
-        // ZurÃ¼ck Button
+        // Zurück Button
         elements.btnBack.addEventListener('click', () => {
             showScreen('planen');
         });
@@ -573,7 +573,7 @@
             }
         });
         
-        // Einkauf abschlieÃŸen
+        // Einkauf abschließen
         elements.btnAbschliessen.addEventListener('click', showDialog);
         elements.btnConfirmAbschluss.addEventListener('click', completeEinkauf);
         elements.btnCancelAbschluss.addEventListener('click', hideDialog);
@@ -593,13 +593,13 @@
         elements.btnSettings?.addEventListener('click', toggleDarkMode);
 
         // ==========================================
-        // Diktierfunktion â€“ Firefox-kompatibel
+        // Diktierfunktion – Firefox-kompatibel
         // ==========================================
         if (elements.btnVoice) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             
             if (SpeechRecognition) {
-                // Browser unterstÃ¼tzt Diktierfunktion â†’ Button anzeigen
+                // Browser unterstützt Diktierfunktion → Button anzeigen
                 elements.btnVoice.style.display = 'flex';
                 elements.btnVoice.addEventListener('click', startVoiceInput);
             } else {
