@@ -14,38 +14,133 @@
     const HISTORY_KEY = 'einkaufsliste_history';
     const SETTINGS_KEY = 'einkaufsliste_settings';
     
+    // Sprachneutrale Schlüssel (id/kategorie); die angezeigten Texte kommen aus
+    // ARTIKEL_NAMEN / KATEGORIE_LABELS unten, abhängig von state.lang.
     const STANDARD_ARTIKEL = [
-        { name: 'Milch', emoji: '🥛', kategorie: 'Kühlung' },
-        { name: 'Butter', emoji: '🧈', kategorie: 'Kühlung' },
-        { name: 'Eier', emoji: '🥚', kategorie: 'Kühlung' },
-        { name: 'Brot', emoji: '🍞', kategorie: 'Backwaren' },
-        { name: 'Käse', emoji: '🧀', kategorie: 'Kühlung' },
-        { name: 'Joghurt', emoji: '🥛', kategorie: 'Kühlung' },
-        { name: 'Äpfel', emoji: '🍎', kategorie: 'Obst & Gemüse' },
-        { name: 'Bananen', emoji: '🍌', kategorie: 'Obst & Gemüse' },
-        { name: 'Nudeln', emoji: '🍝', kategorie: 'Vorräte' },
-        { name: 'Reis', emoji: '🍚', kategorie: 'Vorräte' },
-        { name: 'Kaffee', emoji: '☕', kategorie: 'Getränke' },
-        { name: 'Wasser', emoji: '💧', kategorie: 'Getränke' },
-        { name: 'Tomaten', emoji: '🍅', kategorie: 'Obst & Gemüse' },
-        { name: 'Zwiebeln', emoji: '🧅', kategorie: 'Obst & Gemüse' },
-        { name: 'Kartoffeln', emoji: '🥔', kategorie: 'Obst & Gemüse' },
-        { name: 'Hähnchen', emoji: '🍗', kategorie: 'Fleisch' },
-        { name: 'Wurst', emoji: '🌭', kategorie: 'Fleisch' },
-        { name: 'Olivenöl', emoji: '🫒', kategorie: 'Vorräte' },
-        { name: 'Zucker', emoji: '🧂', kategorie: 'Vorräte' },
-        { name: 'Mehl', emoji: '🌾', kategorie: 'Vorräte' }
+        { id: 'milch', emoji: '🥛', kategorie: 'kuehlung' },
+        { id: 'butter', emoji: '🧈', kategorie: 'kuehlung' },
+        { id: 'eier', emoji: '🥚', kategorie: 'kuehlung' },
+        { id: 'brot', emoji: '🍞', kategorie: 'backwaren' },
+        { id: 'kaese', emoji: '🧀', kategorie: 'kuehlung' },
+        { id: 'joghurt', emoji: '🥛', kategorie: 'kuehlung' },
+        { id: 'aepfel', emoji: '🍎', kategorie: 'obst_gemuese' },
+        { id: 'bananen', emoji: '🍌', kategorie: 'obst_gemuese' },
+        { id: 'nudeln', emoji: '🍝', kategorie: 'vorraete' },
+        { id: 'reis', emoji: '🍚', kategorie: 'vorraete' },
+        { id: 'kaffee', emoji: '☕', kategorie: 'getraenke' },
+        { id: 'wasser', emoji: '💧', kategorie: 'getraenke' },
+        { id: 'tomaten', emoji: '🍅', kategorie: 'obst_gemuese' },
+        { id: 'zwiebeln', emoji: '🧅', kategorie: 'obst_gemuese' },
+        { id: 'kartoffeln', emoji: '🥔', kategorie: 'obst_gemuese' },
+        { id: 'haehnchen', emoji: '🍗', kategorie: 'fleisch' },
+        { id: 'wurst', emoji: '🌭', kategorie: 'fleisch' },
+        { id: 'olivenoel', emoji: '🫒', kategorie: 'vorraete' },
+        { id: 'zucker', emoji: '🧂', kategorie: 'vorraete' },
+        { id: 'mehl', emoji: '🌾', kategorie: 'vorraete' }
     ];
 
+    const ARTIKEL_NAMEN = {
+        de: {
+            milch: 'Milch', butter: 'Butter', eier: 'Eier', brot: 'Brot', kaese: 'Käse',
+            joghurt: 'Joghurt', aepfel: 'Äpfel', bananen: 'Bananen', nudeln: 'Nudeln', reis: 'Reis',
+            kaffee: 'Kaffee', wasser: 'Wasser', tomaten: 'Tomaten', zwiebeln: 'Zwiebeln',
+            kartoffeln: 'Kartoffeln', haehnchen: 'Hähnchen', wurst: 'Wurst', olivenoel: 'Olivenöl',
+            zucker: 'Zucker', mehl: 'Mehl'
+        },
+        en: {
+            milch: 'Milk', butter: 'Butter', eier: 'Eggs', brot: 'Bread', kaese: 'Cheese',
+            joghurt: 'Yogurt', aepfel: 'Apples', bananen: 'Bananas', nudeln: 'Pasta', reis: 'Rice',
+            kaffee: 'Coffee', wasser: 'Water', tomaten: 'Tomatoes', zwiebeln: 'Onions',
+            kartoffeln: 'Potatoes', haehnchen: 'Chicken', wurst: 'Sausage', olivenoel: 'Olive Oil',
+            zucker: 'Sugar', mehl: 'Flour'
+        }
+    };
+
     const KATEGORIE_REIHENFOLGE = [
-        'Obst & Gemüse',
-        'Kühlung',
-        'Fleisch',
-        'Backwaren',
-        'Vorräte',
-        'Getränke',
-        'Sonstiges'
+        'obst_gemuese',
+        'kuehlung',
+        'fleisch',
+        'backwaren',
+        'vorraete',
+        'getraenke',
+        'sonstiges'
     ];
+
+    const KATEGORIE_LABELS = {
+        de: {
+            obst_gemuese: 'Obst & Gemüse', kuehlung: 'Kühlung', fleisch: 'Fleisch',
+            backwaren: 'Backwaren', vorraete: 'Vorräte', getraenke: 'Getränke', sonstiges: 'Sonstiges'
+        },
+        en: {
+            obst_gemuese: 'Fruit & Vegetables', kuehlung: 'Refrigerated', fleisch: 'Meat',
+            backwaren: 'Bakery', vorraete: 'Pantry', getraenke: 'Beverages', sonstiges: 'Other'
+        }
+    };
+
+    // Migration: vor diesem Feature wurde das deutsche Label direkt als
+    // kategorie-Wert gespeichert. Bildet solche Altdaten auf die neuen Schlüssel ab.
+    const KATEGORIE_LEGACY_DE_ZU_KEY = Object.fromEntries(
+        Object.entries(KATEGORIE_LABELS.de).map(([key, label]) => [label, key])
+    );
+
+    const STRINGS = {
+        de: {
+            headerPlanen: 'Einkauf planen',
+            headerEinkauf: 'Einkauf',
+            inputPlaceholder: 'Artikel hinzufügen...',
+            ariaHinzufuegen: 'Hinzufügen',
+            sectionHaeufig: 'Häufig gekauft',
+            emptyTitle: 'Deine Liste ist noch leer',
+            emptyText: 'Füge Artikel hinzu, um deinen nächsten Einkauf optimal vorzubereiten.',
+            btnVorschlaege: 'Vorschläge ansehen',
+            sectionListe: 'Einkaufsliste',
+            btnStartEinkauf: 'Einkauf starten',
+            ariaVoice: 'Spracheingabe',
+            ariaZurueck: 'Zurück',
+            progressLabel: 'Fortschritt',
+            progressCount: (checked, total) => `${checked} von ${total} erledigt`,
+            btnAbschliessen: 'Einkauf abschließen',
+            dialogTitle: 'Einkauf abschließen?',
+            dialogText: 'Die Liste wird geleert und dein Einkauf wird beendet. Dieser Vorgang kann nicht rückgängig gemacht werden.',
+            btnConfirmAbschluss: 'Abschließen & Leeren',
+            btnCancelAbschluss: 'Abbrechen',
+            navPlanen: 'Planen',
+            navEinkauf: 'Einkauf',
+            ariaLoeschen: 'Löschen',
+            ariaDarkMode: 'Dark Mode umschalten',
+            ariaLang: 'Sprache wechseln'
+        },
+        en: {
+            headerPlanen: 'Plan Shopping',
+            headerEinkauf: 'Shopping',
+            inputPlaceholder: 'Add item...',
+            ariaHinzufuegen: 'Add',
+            sectionHaeufig: 'Frequently Bought',
+            emptyTitle: 'Your list is still empty',
+            emptyText: 'Add items to get your next shopping trip ready.',
+            btnVorschlaege: 'View suggestions',
+            sectionListe: 'Shopping List',
+            btnStartEinkauf: 'Start Shopping',
+            ariaVoice: 'Voice input',
+            ariaZurueck: 'Back',
+            progressLabel: 'Progress',
+            progressCount: (checked, total) => `${checked} of ${total} done`,
+            btnAbschliessen: 'Finish Shopping',
+            dialogTitle: 'Finish shopping?',
+            dialogText: 'The list will be cleared and your shopping trip ended. This cannot be undone.',
+            btnConfirmAbschluss: 'Finish & Clear',
+            btnCancelAbschluss: 'Cancel',
+            navPlanen: 'Plan',
+            navEinkauf: 'Shop',
+            ariaLoeschen: 'Delete',
+            ariaDarkMode: 'Toggle dark mode',
+            ariaLang: 'Switch language'
+        }
+    };
+
+    function t(key) {
+        return STRINGS[state.lang][key];
+    }
 
     // ==========================================
     // State
@@ -55,7 +150,8 @@
         liste: [],
         // Kaufhistorie: { name -> { count, emoji, kategorie } }
         history: {},
-        darkMode: false
+        darkMode: false,
+        lang: 'de'
     };
 
     // ==========================================
@@ -86,19 +182,42 @@
         navItems: document.querySelectorAll('.nav-item'),
         btnVoice: document.getElementById('btn-voice'),
         btnSettings: document.getElementById('btn-settings'),
-        autocompleteList: document.getElementById('autocomplete-list')
+        autocompleteList: document.getElementById('autocomplete-list'),
+        btnLang: document.getElementById('btn-lang'),
+        headerPlanenTitle: document.getElementById('header-planen-title'),
+        headerEinkaufTitle: document.getElementById('header-einkauf-title'),
+        titleHaeufig: document.getElementById('title-haeufig'),
+        emptyTitleEl: document.getElementById('empty-title'),
+        emptyTextEl: document.getElementById('empty-text'),
+        btnVorschlaegeText: document.getElementById('btn-vorschlaege-text'),
+        titleListe: document.getElementById('title-liste'),
+        btnStartEinkaufText: document.getElementById('btn-start-einkauf-text'),
+        progressLabelText: document.getElementById('progress-label-text'),
+        btnAbschliessenText: document.getElementById('btn-abschliessen-text'),
+        navPlanenText: document.getElementById('nav-planen-text'),
+        navEinkaufText: document.getElementById('nav-einkauf-text'),
+        dialogTitleEl: document.getElementById('dialog-title'),
+        dialogTextEl: document.getElementById('dialog-text')
     };
 
     // ==========================================
     // LocalStorage
     // ==========================================
     
+    /**
+     * Bildet einen evtl. noch deutschen Kategorie-String aus Daten vor diesem
+     * Feature auf den neuen sprachneutralen Schlüssel ab.
+     */
+    function migriereKategorie(kategorie) {
+        return KATEGORIE_LEGACY_DE_ZU_KEY[kategorie] || kategorie;
+    }
+
     function loadData() {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 const parsed = JSON.parse(saved);
-                state.liste = parsed.liste || [];
+                state.liste = (parsed.liste || []).map(a => ({ ...a, kategorie: migriereKategorie(a.kategorie) }));
             }
         } catch (e) {
             console.error('Fehler beim Laden:', e);
@@ -108,7 +227,10 @@
         try {
             const hist = localStorage.getItem(HISTORY_KEY);
             if (hist) {
-                state.history = JSON.parse(hist);
+                const parsedHist = JSON.parse(hist);
+                state.history = Object.fromEntries(
+                    Object.entries(parsedHist).map(([key, item]) => [key, { ...item, kategorie: migriereKategorie(item.kategorie) }])
+                );
             }
         } catch (e) {
             console.error('Fehler beim Laden der Historie:', e);
@@ -120,9 +242,11 @@
             if (settings) {
                 const parsed = JSON.parse(settings);
                 state.darkMode = parsed.darkMode || false;
+                state.lang = parsed.lang === 'en' ? 'en' : 'de';
             }
         } catch (e) {
             state.darkMode = false;
+            state.lang = 'de';
         }
     }
 
@@ -144,7 +268,7 @@
 
     function saveSettings() {
         try {
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify({ darkMode: state.darkMode }));
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify({ darkMode: state.darkMode, lang: state.lang }));
         } catch (e) {
             console.error('Fehler beim Speichern der Einstellungen:', e);
         }
@@ -200,7 +324,12 @@
         };
 
         getHistorySorted().forEach(item => tryAdd({ ...item, fromHistory: true }));
-        STANDARD_ARTIKEL.forEach(artikel => tryAdd({ ...artikel, count: 0, fromHistory: false }));
+        STANDARD_ARTIKEL.forEach(artikel => tryAdd({
+            ...artikel,
+            name: ARTIKEL_NAMEN[state.lang][artikel.id],
+            count: 0,
+            fromHistory: false
+        }));
 
         return results.slice(0, limit);
     }
@@ -236,6 +365,63 @@
     function toggleDarkMode() {
         state.darkMode = !state.darkMode;
         applyDarkMode();
+        saveSettings();
+    }
+
+    // ==========================================
+    // Sprache (i18n)
+    // ==========================================
+
+    function setText(el, text) {
+        if (el) el.textContent = text;
+    }
+
+    /**
+     * Aktualisiert alle statischen UI-Texte auf die aktuelle Sprache und rendert
+     * die sprachabhängigen Teile neu (Kategorien-Überschriften, Standard-Artikel-
+     * Chips). Bereits hinzugefügte Artikel behalten den Namen, mit dem sie
+     * angelegt wurden – es wird nichts rückwirkend übersetzt.
+     */
+    function applyLanguage() {
+        document.documentElement.lang = state.lang;
+
+        if (elements.btnLang) {
+            elements.btnLang.textContent = state.lang === 'de' ? 'EN' : 'DE';
+            elements.btnLang.setAttribute('aria-label', t('ariaLang'));
+        }
+
+        setText(elements.headerPlanenTitle, t('headerPlanen'));
+        setText(elements.headerEinkaufTitle, t('headerEinkauf'));
+        if (elements.inputArtikel) elements.inputArtikel.placeholder = t('inputPlaceholder');
+        elements.btnAdd?.setAttribute('aria-label', t('ariaHinzufuegen'));
+        setText(elements.titleHaeufig, t('sectionHaeufig'));
+        setText(elements.emptyTitleEl, t('emptyTitle'));
+        setText(elements.emptyTextEl, t('emptyText'));
+        setText(elements.btnVorschlaegeText, t('btnVorschlaege'));
+        setText(elements.titleListe, t('sectionListe'));
+        setText(elements.btnStartEinkaufText, t('btnStartEinkauf'));
+        elements.btnVoice?.setAttribute('aria-label', t('ariaVoice'));
+        elements.btnBack?.setAttribute('aria-label', t('ariaZurueck'));
+        setText(elements.progressLabelText, t('progressLabel'));
+        setText(elements.btnAbschliessenText, t('btnAbschliessen'));
+        setText(elements.dialogTitleEl, t('dialogTitle'));
+        setText(elements.dialogTextEl, t('dialogText'));
+        setText(elements.btnConfirmAbschluss, t('btnConfirmAbschluss'));
+        setText(elements.btnCancelAbschluss, t('btnCancelAbschluss'));
+        setText(elements.navPlanenText, t('navPlanen'));
+        setText(elements.navEinkaufText, t('navEinkauf'));
+        elements.btnSettings?.setAttribute('aria-label', t('ariaDarkMode'));
+
+        renderChips();
+        if (elements.screenEinkauf.classList.contains('active')) {
+            renderEinkaufListe();
+        }
+        updateProgress();
+    }
+
+    function toggleLanguage() {
+        state.lang = state.lang === 'de' ? 'en' : 'de';
+        applyLanguage();
         saveSettings();
     }
 
@@ -352,7 +538,7 @@
             id: generateId(),
             name: info ? info.name : trimmed,
             emoji: info ? info.emoji : '🛒',
-            kategorie: info ? info.kategorie : 'Sonstiges',
+            kategorie: info ? info.kategorie : 'sonstiges',
             checked: false
         });
         
@@ -433,16 +619,16 @@
         KATEGORIE_REIHENFOLGE.forEach(k => grouped[k] = []);
         
         state.liste.forEach(artikel => {
-            const kat = artikel.kategorie || 'Sonstiges';
+            const kat = artikel.kategorie || 'sonstiges';
             if (!grouped[kat]) grouped[kat] = [];
             grouped[kat].push(artikel);
         });
-        
+
         const nonEmpty = KATEGORIE_REIHENFOLGE.filter(k => grouped[k]?.length > 0);
-        
+
         elements.einkaufKategorien.innerHTML = nonEmpty.map(kategorie => `
             <div class="kategorie-section">
-                <h3 class="kategorie-title">${kategorie}</h3>
+                <h3 class="kategorie-title">${KATEGORIE_LABELS[state.lang][kategorie] || kategorie}</h3>
                 <ul class="einkauf-liste">
                     ${grouped[kategorie].map(artikel => {
                         const { name } = renderArtikelInhalt(artikel);
@@ -469,7 +655,7 @@
         const checked = state.liste.filter(a => a.checked).length;
         const percent = total > 0 ? (checked / total) * 100 : 0;
         
-        elements.progressCount.textContent = `${checked} von ${total} erledigt`;
+        elements.progressCount.textContent = t('progressCount')(checked, total);
         elements.progressFill.style.width = `${percent}%`;
     }
 
@@ -625,6 +811,9 @@
         // Dark Mode Toggle (Einstellungen-Button → wird zur Sonne/Mond)
         elements.btnSettings?.addEventListener('click', toggleDarkMode);
 
+        // Sprache umschalten (DE/EN)
+        elements.btnLang?.addEventListener('click', toggleLanguage);
+
         // ==========================================
         // Diktierfunktion – Firefox-kompatibel
         // ==========================================
@@ -651,7 +840,7 @@
         if (!SpeechRecognition) return;
 
         const recognition = new SpeechRecognition();
-        recognition.lang = 'de-DE';
+        recognition.lang = state.lang === 'en' ? 'en-US' : 'de-DE';
         recognition.continuous = false;
         recognition.interimResults = false;
         
@@ -695,7 +884,7 @@
     function init() {
         loadData();
         applyDarkMode();
-        renderChips();
+        applyLanguage();
         renderPlanenListe();
         setupEventListeners();
         registerServiceWorker();
