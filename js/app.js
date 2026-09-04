@@ -232,6 +232,19 @@
             .replace(/'/g, '&#39;');
     }
 
+    /**
+     * Escaptes Emoji/Name (+ optionalem Mengen-Badge) für eine Artikel-Karte.
+     * Zentralisiert die Escaping- und Badge-Logik, die sonst in jeder
+     * render-Funktion einzeln wiederholt werden müsste.
+     */
+    function renderArtikelInhalt(artikel, { count = 0, countClass = '' } = {}) {
+        return {
+            emoji: artikel.emoji ? escapeHtml(artikel.emoji) : '',
+            name: escapeHtml(artikel.name),
+            badge: count > 0 ? ` <span class="${countClass}">${count}×</span>` : ''
+        };
+    }
+
     // ==========================================
     // Autocomplete
     // ==========================================
@@ -280,13 +293,16 @@
             return;
         }
 
-        list.innerHTML = items.map(item => `
-            <li class="autocomplete-item" data-name="${escapeHtml(item.name)}">
-                <span class="autocomplete-emoji">${escapeHtml(item.emoji)}</span>
-                <span class="autocomplete-name">${escapeHtml(item.name)}</span>
-                ${item.count > 0 ? `<span class="autocomplete-count">${item.count}×</span>` : ''}
-            </li>
-        `).join('');
+        list.innerHTML = items.map(item => {
+            const { emoji, name, badge } = renderArtikelInhalt(item, { count: item.count, countClass: 'autocomplete-count' });
+            return `
+                <li class="autocomplete-item" data-name="${name}">
+                    <span class="autocomplete-emoji">${emoji}</span>
+                    <span class="autocomplete-name">${name}</span>
+                    ${badge}
+                </li>
+            `;
+        }).join('');
         list.style.display = 'block';
     }
 
@@ -381,11 +397,14 @@
             chips = [...chips, ...fallback];
         }
 
-        elements.chipsContainer.innerHTML = chips.map(artikel => `
-            <button class="chip" data-name="${escapeHtml(artikel.name)}">
-                ${artikel.emoji ? escapeHtml(artikel.emoji) + ' ' : ''}${escapeHtml(artikel.name)}${artikel.count > 0 ? ` <span class="chip-count">${artikel.count}×</span>` : ''}
-            </button>
-        `).join('');
+        elements.chipsContainer.innerHTML = chips.map(artikel => {
+            const { emoji, name, badge } = renderArtikelInhalt(artikel, { count: artikel.count, countClass: 'chip-count' });
+            return `
+                <button class="chip" data-name="${name}">
+                    ${emoji ? emoji + ' ' : ''}${name}${badge}
+                </button>
+            `;
+        }).join('');
     }
 
     function renderPlanenListe() {
@@ -396,20 +415,23 @@
         elements.ctaPlanen.style.display = hasItems ? 'block' : 'none';
         elements.screenPlanen.classList.toggle('has-items', hasItems);
         
-        elements.artikelListe.innerHTML = state.liste.map(artikel => `
-            <li class="artikel-item" data-name="${escapeHtml(artikel.name.toLowerCase())}">
-                <div class="artikel-item-left">
-                    <div class="artikel-icon">${escapeHtml(artikel.emoji)}</div>
-                    <span class="artikel-name">${escapeHtml(artikel.name)}</span>
-                </div>
-                <button class="btn-delete" data-id="${artikel.id}" aria-label="Löschen">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                </button>
-            </li>
-        `).join('');
+        elements.artikelListe.innerHTML = state.liste.map(artikel => {
+            const { emoji, name } = renderArtikelInhalt(artikel);
+            return `
+                <li class="artikel-item" data-name="${escapeHtml(artikel.name.toLowerCase())}">
+                    <div class="artikel-item-left">
+                        <div class="artikel-icon">${emoji}</div>
+                        <span class="artikel-name">${name}</span>
+                    </div>
+                    <button class="btn-delete" data-id="${artikel.id}" aria-label="Löschen">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </li>
+            `;
+        }).join('');
         
         renderChips();
     }
@@ -430,7 +452,9 @@
             <div class="kategorie-section">
                 <h3 class="kategorie-title">${kategorie}</h3>
                 <ul class="einkauf-liste">
-                    ${grouped[kategorie].map(artikel => `
+                    ${grouped[kategorie].map(artikel => {
+                        const { name } = renderArtikelInhalt(artikel);
+                        return `
                         <li class="einkauf-item ${artikel.checked ? 'checked' : ''}" data-id="${artikel.id}">
                             <div class="checkbox">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
@@ -438,10 +462,11 @@
                                 </svg>
                             </div>
                             <div class="einkauf-item-content">
-                                <span class="einkauf-item-name">${escapeHtml(artikel.name)}</span>
+                                <span class="einkauf-item-name">${name}</span>
                             </div>
                         </li>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </ul>
             </div>
         `).join('');
